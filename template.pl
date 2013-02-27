@@ -61,12 +61,14 @@ while(my $file = shift)
 __DATA__
 __[ h_hpp ]__
 /************************************************************************
+
     {$file}: {$abstract}
 
     Written by {$author}
 
     Distributed under the terms of {$license}
     See {$url}
+
  ***********************************************************************/
 
 #ifndef {$guard}
@@ -75,12 +77,14 @@ __[ h_hpp ]__
 #endif  /* defined {$guard} */
 __[ c_cpp ]__
 /************************************************************************
+
     {$file}: {$abstract}
 
     Written by {$author}
 
     Distributed under the terms of {$license}
     See {$url}
+
  ***********************************************************************/
 __[ pl ]__
 #!/usr/bin/perl
