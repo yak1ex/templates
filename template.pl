@@ -25,6 +25,7 @@ my %extmap = (
 	cpp => 'c_cpp',
 	pl => 'pl',
 	pm => 'pm',
+	rc => 'rc',
 );
 
 my $CONF = $ENV{HOME}.'/.template.yaml';
@@ -69,6 +70,8 @@ __[ h_hpp ]__
     Distributed under the terms of {$license}
     See {$url}
 
+    $Id$
+
  ***********************************************************************/
 
 #ifndef {$guard}
@@ -85,7 +88,67 @@ __[ c_cpp ]__
     Distributed under the terms of {$license}
     See {$url}
 
+    $Id$
+
  ***********************************************************************/
+__[ rc ]__
+/************************************************************************
+
+    {$file}: {$abstract}
+
+    Written by {$author}
+
+    Distributed under the terms of {$license}
+    See {$url}
+
+    $Id$
+
+ ***********************************************************************/
+
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+#include "resource.h"
+
+//
+// Version Information resources
+//
+IDV_VERSIONINFO VERSIONINFO
+    FILEVERSION     0,0,2000,0
+    PRODUCTVERSION  0,0,2000,0
+    FILEOS          VOS_NT_WINDOWS32
+    FILETYPE        VFT_DLL | VFT_APP
+    FILESUBTYPE     VFT2_UNKNOWN
+    FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+#ifdef DEBUG
+    FILEFLAGS       VS_FF_DEBUG | VS_FF_PRIVATEBUILD | VS_FF_PRERELEASE
+#else
+    FILEFLAGS       0x00000000
+#endif
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041103A4"
+        BEGIN
+            VALUE "CompanyName", "Yak!"
+            VALUE "FileDescription", " - {$abstract}"
+            VALUE "FileVersion", "Ver 0.00 (20000/00/00)"
+            VALUE "InternalName", "{$file}"
+            VALUE "LegalCopyright", "Written by Yak!"
+            VALUE "OriginalFilename", "{$file}"
+            VALUE "ProductName", "{$file}"
+            VALUE "ProductVersion", "Ver 0.00 (2000/00/00)"
+#ifdef DEBUG
+            VALUE "PrivateBuild", "Debug build"
+#endif
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0411, 0x03A4
+    END
+END
+
 __[ pl ]__
 #!/usr/bin/perl
 #
@@ -95,6 +158,8 @@ __[ pl ]__
 #
 #   Distributed under the terms of {$license}
 #   See {$url}
+#
+#   $Id$
 #
 
 use strict;
@@ -127,6 +192,8 @@ __[ pm ]__
 #
 #   Distributed under the terms of {$license}
 #   See {$url}
+#
+#   $Id$
 #
 
 use strict;
