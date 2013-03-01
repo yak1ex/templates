@@ -9,6 +9,16 @@
 #       $Id$
 #
 
+if [ $# -lt 2 ]; then
+    cat<<EOF
+
+verbump.sh <version> <files>...
+
+ex. verbump.sh 0.05 foo.{txt,rc,cpp}
+
+EOF
+    exit 1
+fi
 version=`echo $1 | sed 's,_,.,g'`
 major=`echo $1 | sed 's@_0*@,@g'`
 date=`date +%Y/%m/%d`
