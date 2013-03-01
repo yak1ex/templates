@@ -10,6 +10,7 @@ use Module::List;
 use Text::Template;
 use Data::Section -setup;
 use YAML::Any;
+use IO::Prompt;
 
 sub show_list
 {
@@ -35,13 +36,14 @@ my %opts;
 getopts('a:A:hlk:', \%opts);
 show_list() if exists $opts{l};
 pod2usage(-verbosity => 2) if exists $opts{h};
-pod2usage(-msg => 'Name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$opts{k}";
-my $author = $opts{A} || $conf->{author};
-my $abstract = $opts{a};
-my $license = ('Software::License::'.$opts{k})->new({ holder => $author });
+my $licensename = $opts{k} || prompt('License: ', '-tty');
+pod2usage(-msg => 'License name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$licensename";
+my $author = $opts{A} || prompt('Author: ', -d => $conf->{author}, '-tty');
+my $license = ('Software::License::'.$licensename)->new({ holder => $author });
 
 while(my $file = shift)
 {
+	my $abstract = $opts{a} || prompt('Abstract: ', '-tty');
 	my ($ext) = ($file =~ /\.([^.]*)$/);
 	my $guard = uc($file);
 	$guard =~ s/\W/_/;
@@ -50,8 +52,8 @@ while(my $file = shift)
 	my $template = Text::Template->new(TYPE => 'STRING', SOURCE => $$tmpl );
 	print $fh $template->fill_in(HASH => {
 		file => $file,
-		author => $author,
-		abstract => $abstract,
+		author => \$author,
+		abstract => \$abstract,
 		guard => $guard,
 		license => $license->name,
 		url => $license->url,
@@ -241,11 +243,15 @@ List license keys
 
 =item C<-k>
 
-Specify license key
+Specify license key. If not specified, asked at the first time.
 
 =item C<-A>
 
-Specify author
+Specify author. If not specified, asked at the first time with default value specified in ~/.template.yaml.
+
+=item C<-a>
+
+Specify abstract. If not specified, asked for each file.
 
 =back
 
