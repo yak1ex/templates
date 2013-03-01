@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#   bump.sh: Version bump script
+#   verbump.sh: Version bump script
 #
 #       Copyright (C) 2013 Yak! / Yasutaka ATARASHI
 #
@@ -14,10 +14,18 @@ major=`echo $1 | sed 's@_0*@,@g'`
 date=`date +%Y/%m/%d`
 version2=`date +$major,%Y,%-m%d`
 echo $version $date $version2
-for i in axffmpeg.cpp axffmpeg.rc axffmpeg.txt; do
+shift
+for i in $@; do
+    case $i in
+    *.bak)
+        continue
+        ;;
+    esac
     sed -i.bak "s,[0-9]\.[0-9][0-9] (..../../..),$version ($date),;s,[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9] Yak!,$date Yak!,;s@\(FILE\|PRODUCT\)VERSION [0-9]*,[0-9]*,[0-9]*,[0-9]*@\1VERSION $version2@g" $i
-    if [ $i = axffmpeg.txt ]; then
+    case $i in
+    *.txt)
         u2d $i
-    fi
+        ;;
+    esac
     diff -u $i.bak $i
 done

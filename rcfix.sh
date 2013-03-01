@@ -1,6 +1,17 @@
 #!/bin/sh
+#
+#   rcfix.sh: Resource file regulation script
+#
+#       Copyright (C) 2013 Yak! / Yasutaka ATARASHI
+#
+#       This software is distributed under the terms of a zlib/libpng License
+#
+#       $Id$
+#
 
-if ! grep -q DEBUG axffmpeg.rc; then
+RESOURCE=axffmpeg.rc
+
+if ! grep -q DEBUG $RESOURCE; then
     sed -i.bak -e '/#include <windows.h>/i/***********************************************************************/\
 /*                                                                     */\
 /* axffmpeg.rc: Resource file for axffmpeg                             */\
@@ -10,7 +21,7 @@ if ! grep -q DEBUG axffmpeg.rc; then
 /*     This software is distributed under the terms of a zlib/libpng   */\
 /*     License.                                                        */\
 /*                                                                     */\
-/*     $Id: 92e6ccc0097dd83dffc6e4b4e6fd95e01a607f1b $                 */\
+/*     $Id$                  */\
 /*                                                                     */\
 /***********************************************************************/' -e 's/FILEFLAGSMASK   0x0000003F/FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK/;/FILEFLAGS       0x00000000/c#ifdef DEBUG\
     FILEFLAGS       VS_FF_DEBUG | VS_FF_PRIVATEBUILD | VS_FF_PRERELEASE\
@@ -18,9 +29,9 @@ if ! grep -q DEBUG axffmpeg.rc; then
     FILEFLAGS       0x00000000\
 #endif' -e '/ProductVersion/a#ifdef DEBUG\
             VALUE "PrivateBuild", "Debug build"\
-#endif' axffmpeg.rc
-    d2u axffmpeg.rc.bak
-    diff axffmpeg.rc.bak axffmpeg.rc
+#endif' $RESOURCE
+    d2u ${RESOURCE}.bak
+    diff ${RESOURCE}.bak ${RESOURCE}
 fi
 
 if ! grep -q resource\\.h resource.h; then
