@@ -32,7 +32,7 @@ for i in $@; do
         continue
         ;;
     esac
-    sed -i.bak "s,[0-9]\.[0-9][0-9] (..../../..),$version ($date),;s,[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9] Yak!,$date Yak!,;s@\(FILE\|PRODUCT\)VERSION [0-9]*,[0-9]*,[0-9]*,[0-9]*@\1VERSION $version2@g" $i
+    sed -i.bak "s,[0-9]\.[0-9][0-9] (..../../..),$version ($date),;s,[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9] Yak!,$date Yak!,;s@\(\(FILE\|PRODUCT\)VERSION  *\)[0-9]*,[0-9]*,[0-9]*,[0-9]*@\1$version2@g" $i
     case $i in
     *.txt)
         u2d $i
