@@ -26,6 +26,7 @@ my %extmap = (
 	cpp => 'c_cpp',
 	pl => 'pl',
 	pm => 'pm',
+	psgi => 'psgi',
 	rc => 'rc',
 );
 
@@ -209,6 +210,41 @@ use warnings;
 {$file} - {$abstract}
 
 \=head1 SYNOPSIS
+
+\=head1 DESCRIPTION
+
+\=cut
+__[ psgi ]__
+#!/usr/bin/env plackup
+#
+#   {$file}: {$abstract}
+#
+#   Written by {$author}
+#
+#   Distributed under the terms of {$license}
+#   See {$url}
+#
+#   $Id$
+#
+
+use strict;
+use warnings;
+
+use Plack::Builder;
+
+builder \{
+	mount '/' => sub \{ return [404, ['Content-Type' => 'text/plain'], ['Not found']] \},
+\\}
+
+\__END__
+
+\=head1 NAME
+
+{$file} - {$abstract}
+
+\=head1 SYNOPSIS
+
+  plackup {$file}
 
 \=head1 DESCRIPTION
 
