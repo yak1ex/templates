@@ -16,21 +16,22 @@ use warnings;
 use Getopt::Std;
 use Pod::Usage;
 
-use Config::Tiny;
+use Config::INI::Reader;
+use Config::INI::Writer;
 
 my %opts;
 getopts('h', \%opts);
 pod2usage(-verbosity => 2) if exists $opts{h};
 pod2usage(-msg => 'At least one repo MUST be specified', -verbose => 0, -exitval => 1) if ! @ARGV;
 
-my $conf_user = Config::Tiny->read("$ENV{HOME}/.gitconfig");
+my $conf_user = Config::INI::Reader->read_file("$ENV{HOME}/.gitconfig");
 my $def_user  = $conf_user->{user}{name};
 my $def_email = $conf_user->{user}{email};
 
 while(my $repo = shift) {
 	warn "$repo already exists" and next if -e $repo;
 	system "git clone https://github.com/yak1ex/${repo}.git";
-	my $conf_repo = Config::Tiny->read("${repo}/.git/config");
+	my $conf_repo = Config::INI::Reader->read_file("${repo}/.git/config");
 	if(-f "${repo}/dist.ini" || -f "${repo}/Makefile.PL" || -f "${repo}/Build.PL") { # Perl module
 		$conf_repo->{user}{name}  = 'Yasutaka ATARASHI';
 		$conf_repo->{user}{email} = 'yakex@cpan.org';
@@ -38,9 +39,9 @@ while(my $repo = shift) {
 		$conf_repo->{user}{name}  = 'Yak!';
 		$conf_repo->{user}{email} = 'yak_ex@mx.scn.tv';
 	}
-	if($conf_repo->{user}{name} ne $conf_user->{user}{name} ||
-	   $conf_repo->{user}{email} ne $conf_user->{user}{email}) {
-		$conf_repo->write("${repo}/.git/config");
+	if($conf_repo->{user}{name} ne $def_user ||
+	   $conf_repo->{user}{email} ne $def_email) {
+		Config::INI::Writer->write_file($conf_repo, "${repo}/.git/config");
 	}
 }
 
