@@ -39,7 +39,8 @@ show_list() if exists $opts{l};
 pod2usage(-verbosity => 2) if exists $opts{h};
 my $licensename = $opts{k} || prompt('License: ', '-tty');
 pod2usage(-msg => 'License name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$licensename";
-my $author = $opts{A} || prompt('Author: ', -d => $conf->{author}, '-tty');
+my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
+my $author = $opts{A} || prompt('Author: ', -menu => $authors, -default => $authors->[0], '-tty');
 my $license = ('Software::License::'.$licensename)->new({ holder => $author });
 
 while(my $file = shift)
