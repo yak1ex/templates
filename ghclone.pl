@@ -46,7 +46,7 @@ while(my $repo = shift) {
 	if(-f "${repo}/dist.ini" || -f "${repo}/Makefile.PL" || -f "${repo}/Build.PL") { # Perl module
 		$default = to_str((grep { $_->{email} =~ /\@cpan\.org$/ } @{$conf->{author}})[0]);
 	}
-	my $result = prompt('Author: ', -menu => $authors, -default => $default, 'tty');
+	my $result = prompt('Author: ', -menu => $authors, -default => $default, '-tty');
 	$result =~ /^(.*\S)\s*<([^>]*)>$/;
 	$conf_repo->{user}{name}  = $1;
 	$conf_repo->{user}{email} = $2;
