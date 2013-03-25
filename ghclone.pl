@@ -28,7 +28,7 @@ sub to_str
 
 my %opts;
 getopts('h', \%opts);
-pod2usage(-verbosity => 2) if exists $opts{h};
+pod2usage(-verbose => 2) if exists $opts{h};
 pod2usage(-msg => 'At least one repo MUST be specified', -verbose => 0, -exitval => 1) if ! @ARGV;
 
 my $CONF = $ENV{HOME}.'/.template.yaml';
