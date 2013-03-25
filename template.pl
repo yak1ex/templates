@@ -36,7 +36,7 @@ my $conf = -r $CONF ? YAML::Any::LoadFile($CONF) : {};
 my %opts;
 getopts('a:A:hlk:', \%opts);
 show_list() if exists $opts{l};
-pod2usage(-verbosity => 2) if exists $opts{h};
+pod2usage(-verbose => 2) if exists $opts{h};
 my $licensename = $opts{k} || prompt('License: ', '-tty');
 pod2usage(-msg => 'License name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$licensename";
 my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
@@ -174,7 +174,7 @@ use Pod::Usage;
 
 my %opts;
 getopts('h', \%opts);
-pod2usage(-verbosity => 2) if exists $opts\{h\};
+pod2usage(-verbose => 2) if exists $opts\{h\};
 pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 
 \__END__
