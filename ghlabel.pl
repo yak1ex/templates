@@ -31,7 +31,16 @@ my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
 
 my (%ref) = (map { $_->{name} => $_->{color} } $gh->issue->labels($user, $ref));
 use Data::Dumper;
-my (@args) = exists $opts{a} ? map { $_->{name}  } grep { ! exists $_->{has_issues} || $_->{has_issues} }  $gh->repos->list_user($user, 'owner') : @ARGV;
+my (@args);
+if(exists $opts{a}) {
+	push @args, $gh->repos->list_user($user, 'owner');
+	while($gh->repos->has_next_page) {
+		push @args, $gh->repos->next_page;
+	}
+	(@args) = map { $_->{name}  } grep { ! exists $_->{has_issues} || $_->{has_issues} } @args;
+} else {
+	(@args) = (@ARGV);
+}
 while(my $repo = shift @args) {
 	$opts{v} and print STDERR "Processing $repo...\n";
 	my (%cur) = (map { $_->{name} => 1 } $gh->issue->labels($user, $repo));
