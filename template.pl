@@ -38,10 +38,10 @@ getopts('a:A:hlk:', \%opts);
 show_list() if exists $opts{l};
 pod2usage(-verbose => 2) if exists $opts{h};
 pod2usage(-msg => 'At least one argument MUST be specified', -verbose => 0, -exitval => 1) if ! @ARGV;
-my $licensename = $opts{k} || prompt('License: ', '-tty');
+my $licensename = $opts{k} || prompt('License: ', -tty);
 pod2usage(-msg => 'License name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$licensename";
 my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
-my $author = $opts{A} || prompt('Author: ', -menu => $authors, -default => $authors->[0], '-tty');
+my $author = $opts{A} || prompt('Author: ', -menu => $authors, -default => $authors->[0], -tty);
 my $license = ('Software::License::'.$licensename)->new({ holder => $author });
 
 while(my $file = shift)
