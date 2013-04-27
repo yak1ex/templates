@@ -41,7 +41,9 @@ pod2usage(-msg => 'At least one argument MUST be specified', -verbose => 0, -exi
 my $licensename = $opts{k} || prompt('License: ', -tty);
 pod2usage(-msg => 'License name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$licensename";
 my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
+push @$authors, 'Other';
 my $author = $opts{A} || prompt('Author: ', -menu => $authors, -default => $authors->[0], -tty);
+$author = prompt('Author: ', -tty) if $author eq 'Other';
 my $license = ('Software::License::'.$licensename)->new({ holder => $author });
 
 while(my $file = shift)
