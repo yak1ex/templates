@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Std;
+use Getopt::Config::FromPod;
 use Pod::Usage;
 
 use Module::List;
@@ -34,7 +35,7 @@ my $CONF = $ENV{HOME}.'/.template.yaml';
 my $conf = -r $CONF ? YAML::Any::LoadFile($CONF) : {};
 
 my %opts;
-getopts('a:A:hlk:', \%opts);
+getopts(Getopt::Config::FromPod->string, \%opts);
 show_list() if exists $opts{l};
 pod2usage(-verbose => 2) if exists $opts{h};
 pod2usage(-msg => 'At least one argument MUST be specified', -verbose => 0, -exitval => 1) if ! @ARGV;
@@ -290,21 +291,31 @@ perl template.pl -k C<key> -A C<author> -a C<abstract>
 
 Show POD help
 
+=for getopt '-h'
+
 =item C<-l>
 
 List license keys
+
+=for getopt '-l'
 
 =item C<-k>
 
 Specify license key. If not specified, asked at the first time.
 
+=for getopt '-k:'
+
 =item C<-A>
 
 Specify author. If not specified, asked at the first time with default value specified in ~/.template.yaml.
 
+=for getopt '-A:'
+
 =item C<-a>
 
 Specify abstract. If not specified, asked for each file.
+
+=for getopt '-a:'
 
 =back
 
