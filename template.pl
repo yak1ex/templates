@@ -38,7 +38,10 @@ my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
 show_list() if exists $opts{l};
 pod2usage(-verbose => 2) if exists $opts{h};
-pod2usage(-msg => 'At least one argument MUST be specified', -verbose => 0, -exitval => 1) if ! @ARGV;
+if(!exists $opts{f}) {
+	@ARGV = grep { -f $_ ? warn("$_ exists, skip") && 0 : 1; } @ARGV;
+}
+pod2usage(-msg => 'At least one valid argument MUST be specified', -verbose => 0, -exitval => 1) if ! @ARGV;
 my $licensename = $opts{k} || prompt('License: ', -tty);
 pod2usage(-msg => 'License name not found', -verbose => 0, -exitval => 1) unless eval "require Software::License::$licensename";
 my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
@@ -291,31 +294,37 @@ perl template.pl -k C<key> -A C<author> -a C<abstract>
 
 Show POD help
 
-=for getopt '-h'
+=for getopt 'h'
 
 =item C<-l>
 
 List license keys
 
-=for getopt '-l'
+=for getopt 'l'
 
 =item C<-k>
 
 Specify license key. If not specified, asked at the first time.
 
-=for getopt '-k:'
+=for getopt 'k:'
 
 =item C<-A>
 
 Specify author. If not specified, asked at the first time with default value specified in ~/.template.yaml.
 
-=for getopt '-A:'
+=for getopt 'A:'
 
 =item C<-a>
 
 Specify abstract. If not specified, asked for each file.
 
-=for getopt '-a:'
+=for getopt 'a:'
+
+=item C<-f>
+
+Force to overwrite even though the specified file has already existed.
+
+=for getopt 'f'
 
 =back
 
