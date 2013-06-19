@@ -173,10 +173,11 @@ use strict;
 use warnings;
 
 use Getopt::Std;
+use Getopt::Config::FromPod;
 use Pod::Usage;
 
 my %opts;
-getopts('h', \%opts);
+getopts(Getopt::Config::FromPod->string, \%opts);
 pod2usage(-verbose => 2) if exists $opts\{h\};
 pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 
@@ -189,6 +190,18 @@ pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 \=head1 SYNOPSIS
 
 \=head1 DESCRIPTION
+
+\=head1 OPTIONS
+
+\=over 4
+
+\=item C<-h>
+
+Show this help.
+
+\=for getopt '-h'
+
+\=back
 
 \=cut
 __[ pm ]__
