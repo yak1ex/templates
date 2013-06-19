@@ -52,7 +52,7 @@ my $license = ('Software::License::'.$licensename)->new({ holder => $author });
 
 while(my $file = shift)
 {
-	my $abstract = $opts{a} || prompt('Abstract: ', '-tty');
+	my $abstract = $opts{a} || prompt("Abstract for $file: ", '-tty');
 	my ($ext) = ($file =~ /\.([^.]*)$/);
 	my $guard = uc($file);
 	$guard =~ s/\W/_/;
