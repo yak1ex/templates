@@ -1,24 +1,27 @@
-[core]
-	quotepath = false
 [user]
 	name = Yak!
 	email = yak_ex@mx.scn.tv
+[core]
+	quotepath = false
 [color]
 	ui = auto
 [alias]
 	a = add
 	ap = add -p
+	au = add -u
 	b = branch
+	ba = branch -a
 	c = commit
 	ci = commit
 	ca = commit --amend -C HEAD
 	cam = commit --amend -m
 	car = commit -C HEAD --amend --reset-author
-	cb = checkout -b 
+	cb = checkout -b
 	cm = commit -m
 	co = checkout
 	d = diff
 	dc = diff --cached
+	ft = fetch --tags
 	h = checkout --
 	hd = checkout --
 	l = log --decorate
@@ -29,12 +32,13 @@
 	pl = pull
 	pr = pull --rebase
 	ps = push
+	pt = push --tags
 	rc = rebase --continue
 	ri = rebase -i
 	s = status
 	ss = status -s
-	st = !git status
-	sc = !git svn clone --no-minimize-url --prefix svn/ -s
+	st = status
+	sc = svn clone --no-minimize-url --prefix svn/ -s
 #[http]
 #	sslcainfo = /usr/ssl/certs/yak.myhome.cx.ca.pem
 #	sslcainfo = /usr/ssl/certs/DigiCertHighAssuranceEVRootCA.crt
