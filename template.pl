@@ -203,7 +203,7 @@ pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 
 Show this help.
 
-\=for getopt '-h'
+\=for getopt 'h'
 
 \=back
 
