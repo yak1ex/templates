@@ -30,8 +30,7 @@ $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0; # Just workaround
 
 my $mach = Net::Netrc->lookup('github.com');
 my $user = $mach->login;
-#my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
-my $gh = Net::GitHub::V3->new;
+my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
 # Ugly hack
 delete $gh->repos->ua->{proxy}{https};
 
