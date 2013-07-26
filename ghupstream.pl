@@ -24,10 +24,16 @@ getopts('hv', \%opts);
 pod2usage(-verbosity => 2) if exists $opts{h};
 #pod2usage(-msg => 'At least 1 repo shuold be specified', -verbose => 0, -exitval => 1) if @ARGV == 0 && !exists $opts{a};
 
+# See http://qiita.com/debug-ito@github/items/4b3fec645f15af9b4929
+$ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = 'Net::SSL';
+$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0; # Just workaround
+
 my $mach = Net::Netrc->lookup('github.com');
 my $user = $mach->login;
 #my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
 my $gh = Net::GitHub::V3->new;
+# Ugly hack
+delete $gh->repos->ua->{proxy}{https};
 
 my $repo;
 open my $fh, '<', '.git/config' or die;
