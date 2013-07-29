@@ -17,9 +17,6 @@ use Getopt::Std;
 use Getopt::Config::FromPod;
 use Pod::Usage;
 use File::Find;
-use File::Temp;
-use File::Basename;
-use File::Path qw(make_path);
 
 my %opts = (
 	s => '.dzil,.gitconfig',
@@ -29,13 +26,11 @@ getopts(Getopt::Config::FromPod->string, \%opts);
 pod2usage(-verbose => 2) if exists $opts{h};
 #pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 
-my $tdir = File::Temp->newdir('mergetmpXXXXX', CLEANUP => 0);
-
 sub process_file
 {
-	make_path(dirname("$tdir/$_[0]"));
 	print "$_[0] $opts{t}/$_[0]\n";
-	system "sdiff -o $tdir/$_[0] $_[0] $opts{t}/$_[0]";
+	system "diff -q $_[0] $opts{t}/$_[0]";
+	system "vimdiff $_[0] $opts{t}/$_[0]" if $? == 256;
 }
 
 sub process_dir
@@ -57,9 +52,6 @@ foreach my $source (@source) {
 		warn 'Unknown file type: $source';
 	}
 }
-# Showing diff
-# Query action
-# Do
 
 __END__
 
