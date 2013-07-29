@@ -61,7 +61,17 @@ merge.pl - Merge configuration
 
 =head1 SYNOPSIS
 
+  # Without option, .dzil and .gitconfig are merged into your home
+  perl merge.pl
+
+  # Same as above by option
+  perl merge.pl -s .dzil,.gitconfig -t $HOME
+
 =head1 DESCRIPTION
+
+Merge configuration template files into actual configration files at home directory.
+C<diff> and C<vimdiff> are required.
+First, check if there are differences is done by C<diff>. Then, actual merge is done by C<vimdiff>.
 
 =head1 OPTIONS
 
@@ -79,9 +89,9 @@ Specify soruce folders and files. Defaults to '.dzil,.gitconfig'.
 
 =for getopt 's:'
 
-=item C<-t E<lt>targetE<gt>>. Defaults to $ENV{HOME}.
+=item C<-t E<lt>targetE<gt>>
 
-Specify target folder.
+Specify target folder. Defaults to $ENV{HOME}.
 
 =for getopt 't:'
 
