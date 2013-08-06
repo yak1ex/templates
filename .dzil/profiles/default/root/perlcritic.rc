@@ -1,2 +1,0 @@
-[BuiltinFunctions::ProhibitStringyEval]
-allow_includes = true
