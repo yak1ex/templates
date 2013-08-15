@@ -16,13 +16,14 @@ use warnings;
 use Getopt::Std;
 use Pod::Usage;
 
+use File::Find;
 use Net::Netrc;
 use Net::GitHub::V3;
 
 my %opts;
-getopts('hv', \%opts);
-pod2usage(-verbosity => 2) if exists $opts{h};
-#pod2usage(-msg => 'At least 1 repo shuold be specified', -verbose => 0, -exitval => 1) if @ARGV == 0 && !exists $opts{a};
+getopts('hrv', \%opts);
+pod2usage(-verbose => 2) if exists $opts{h};
+pod2usage(-msg => 'Arguments should not be files but be folders', -verbose => 0, -exitval => 1) if grep { ! -d $_ } @ARGV;
 
 # See http://qiita.com/debug-ito@github/items/4b3fec645f15af9b4929
 $ENV{https_proxy} =~ s,^http://,connect://, if exists $ENV{https_proxy};
@@ -35,31 +36,53 @@ my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
 sub process_dir
 {
 	my $dir = shift;
-	my $repo;
+	my ($repo, $already);
 	open my $fh, '<', "$dir/.git/config" or die;
 	while(<$fh>) {
 		if(m@https://github.com/$user/(\S+?)(?:.git)?$@) {
 			$repo = $1;
-			last;
+		}
+		if(m@\[remote "upstream"]@) {
+			$already = 1;
 		}
 	}
 	close $fh;
+	if(defined $already) {
+		$opts{v} and warn "$repo is skipped because upstream has already existed";
+		return;
+	}
 	return $repo;
 }
 
-my $repo = process_dir('.');
-die if ! defined $repo;
+find({
+	no_chdir => 1,
+	wanted => sub {
+		return unless -d $File::Find::name;
+		return unless -f "$File::Find::name/.git/config";
+		my $repo = process_dir($File::Find::name);
+		return if ! defined $repo;
 
-my $dat = $gh->repos->get($user, $repo);
-die "$repo is not a fork" if ! exists $dat->{source};
-warn "source and parent are different for $repo" if $dat->{source}{url} ne $dat->{parent}{url};
+		my $dat = $gh->repos->get($user, $repo);
+		$opts{v} and warn "$repo is not a fork" and 0 or return if ! exists $dat->{parent};
+		$opts{v} and warn "source and parent are different for $repo" and 0 or return if $dat->{source}{url} ne $dat->{parent}{url};
 
-my $upstream_url = $dat->{parent}{clone_url};
-print <<EOF
+		my $upstream_url = $dat->{parent}{clone_url};
+		print STDERR "Setup upstream for $repo\n";
+		open my $fh, '>>', "$File::Find::name/.git/config";
+		print $fh <<EOF;
 [remote "upstream"]
-        url = $upstream_url
         fetch = +refs/heads/*:refs/remotes/upstream/*
+        url = $upstream_url
 EOF
+		close $fh;
+	},
+	preprocess => sub {
+		my @list = @_;
+		return unless exists $opts{r};
+		return if grep { /^\.git$/ } @list;
+		return grep { -d "$File::Find::dir/$_" } @list;
+	}
+}, @ARGV);
 
 __END__
 
