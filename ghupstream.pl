@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-#   ghlabel.pl: Label configurator for GitHub Issues.
+#   ghupstream.pl: Upstream configurator for GitHub working copy.
 #
 #   Written by Yasutaka ATARASHI <yak_ex@mx.scn.tv>
 #
@@ -88,21 +88,21 @@ __END__
 
 =head1 NAME
 
-ghlabel.pl - Label configurator for GitHub Issues.
+ghupstream.pl - Upstream configurator for GitHub working copy.
 
 =head1 SYNOPSIS
 
-ghlabel.pl [-v] [-a] [-r C<refrepo>] C<repos>...
+ghupstream.pl [-v] [-r] C<working copy>...
 
-  # Configurate all repositories with verbose messages
-  ghlabel.pl -av
+  # Configurate all repositories under the current directory with verbose messages
+  ghupstream.pl -rv
 
-  # Explicit specification of referenced repository and target repositories
-  ghlabel.pl -r refrepo repo1 repo2
+  # Explicit specification of target repositories
+  ghupstream.pl repo1 repo2
 
 =head1 DESCRIPTION
 
-Create missing issue labels according to referenced repository on GitHub.
+Add upstream remote specification if a repository is a fork.
 
 =head OPTIONS
 
@@ -112,11 +112,11 @@ Create missing issue labels according to referenced repository on GitHub.
 
 Enable verbose messages
 
-=item -r C<refrepo>
+=item -r
 
-Set referenced repository. Defaults to 'templates'.
+Recursive check.
 
-=item C<repos>...
+=item C<working copy>...
 
 Specify target repositories.
 
