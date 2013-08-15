@@ -32,21 +32,29 @@ my $mach = Net::Netrc->lookup('github.com');
 my $user = $mach->login;
 my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
 
-my $repo;
-open my $fh, '<', '.git/config' or die;
-while(<$fh>) {
-	if(m@https://github.com/$user/(\S+?)(?:.git)?$@) {
-		$repo = $1;
-		last;
+sub process_dir
+{
+	my $dir = shift;
+	my $repo;
+	open my $fh, '<', "$dir/.git/config" or die;
+	while(<$fh>) {
+		if(m@https://github.com/$user/(\S+?)(?:.git)?$@) {
+			$repo = $1;
+			last;
+		}
 	}
+	close $fh;
+	return $repo;
 }
-close $fh;
+
+my $repo = process_dir('.');
 die if ! defined $repo;
 
-#$gh->set_default_user_repo($user, $repo);
-print $gh->repos->get($user, $repo);
-exit;
-my $upstream_url;
+my $dat = $gh->repos->get($user, $repo);
+die "$repo is not a fork" if ! exists $dat->{source};
+warn "source and parent are different for $repo" if $dat->{source}{url} ne $dat->{parent}{url};
+
+my $upstream_url = $dat->{parent}{clone_url};
 print <<EOF
 [remote "upstream"]
         url = $upstream_url
