@@ -1,0 +1,15 @@
+#!/bin/sh
+
+case $0 in
+*/dzcl)
+	command=clean
+	;;
+*)
+	exit 1;
+	;;
+esac
+
+for i in `find . -name '.build' -prune -o -type f -path "*/dist.ini" -print | sed -e "s,/dist.ini,,"`; do
+	echo $i
+	(cd $i; dzil $command)
+done
