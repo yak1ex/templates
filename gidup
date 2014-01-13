@@ -7,6 +7,12 @@ fi
 
 while test -n "$1" ; do
 
+    if ! grep -q '$Id' $1; then
+        echo INFO: $1 has no marker
+        shift
+        continue
+    fi
+
     if [ `env PAGER= git log -n 1 -- $1 | wc -c` = 0 ]; then
         echo ERROR: $1 is not under Git control
         shift
