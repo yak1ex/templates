@@ -1,28 +1,36 @@
 #!/bin/sh
 
 if [ $# -lt 1 ]; then
-    echo $0 '<file>'
+    echo Usage: $0 '<file>...'
     exit 1
 fi
 
-if [ `env PAGER= git log -n 1 -- $1 | wc -c` = 0 ]; then
-    echo ERROR: $1 is not under Git control
-    exit 1
-fi
+while test -n "$1" ; do
 
-if ! git diff --quiet HEAD -- $1; then
-    echo ERROR: $1 has differences not yet commit
-    exit 1
-fi
+    if [ `env PAGER= git log -n 1 -- $1 | wc -c` = 0 ]; then
+        echo ERROR: $1 is not under Git control
+        shift
+        continue
+    fi
 
-cur=`dirname $1`
-tmp=`mktemp --tmpdir=$cur`
-mv -f $1 $tmp
-git hd $1
-if diff $1 $tmp; then
-    echo INFO: $1 has the same ID
-    mv -f $tmp $1
-else
-    echo INFO: $1 updated
-    rm $tmp
-fi
+    if ! git diff --quiet HEAD -- $1; then
+        echo ERROR: $1 has differences not yet commit
+        shift
+        continue
+    fi
+
+    cur=`dirname $1`
+    tmp=`mktemp --tmpdir=$cur`
+    mv -f $1 $tmp
+    git hd $1
+    if diff $1 $tmp; then
+        echo INFO: $1 has the same ID
+        mv -f $tmp $1
+    else
+        echo INFO: $1 updated
+        rm $tmp
+    fi
+
+    shift
+
+done
