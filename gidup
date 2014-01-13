@@ -6,12 +6,12 @@ if [ $# -lt 1 ]; then
 fi
 
 if [ `env PAGER= git log -n 1 -- $1 | wc -c` = 0 ]; then
-    echo $1 is not under Git control
+    echo ERROR: $1 is not under Git control
     exit 1
 fi
 
 if ! git diff --quiet HEAD -- $1; then
-    echo $1 has differences not yet commit
+    echo ERROR: $1 has differences not yet commit
     exit 1
 fi
 
@@ -20,8 +20,9 @@ tmp=`mktemp --tmpdir=$cur`
 mv -f $1 $tmp
 git hd $1
 if diff $1 $tmp; then
+    echo INFO: $1 has the same ID
     mv -f $tmp $1
 else
-    echo $1 updated
+    echo INFO: $1 updated
     rm $tmp
 fi
