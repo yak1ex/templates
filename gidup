@@ -10,5 +10,10 @@ if [ `env PAGER= git log -n 1 -- $1 | wc -c` = 0 ]; then
     exit 1
 fi
 
+if ! git diff --quiet HEAD -- $1; then
+    echo $1 has differences not yet commit
+    exit 1
+fi
+
 rm $1
 git hd $1
