@@ -15,5 +15,13 @@ if ! git diff --quiet HEAD -- $1; then
     exit 1
 fi
 
-rm $1
+cur=`dirname $1`
+tmp=`mktemp --tmpdir=$cur`
+mv -f $1 $tmp
 git hd $1
+if diff $1 $tmp; then
+    mv -f $tmp $1
+else
+    echo $1 updated
+    rm $tmp
+fi
