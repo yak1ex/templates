@@ -35,7 +35,7 @@ for i in `find $dir -type d -exec test -f '{}/.git/config' \; -prune $filter -pr
 			echo -en ' \033[1;33mDIRTY\033[0;0m'
 		fi
 		rm $temp
-		if (cd $i; git log -n 1 | grep -qE '[Uu]pdate.*after release|Released as'); then
+		if (cd $i; git log --decorate -n 1 | grep -qE '[Uu]pdate.*after release|Released as|tag:'); then
 			: 
 		else
 			echo -en " \033[0;32mWORK\033[0;0m"
