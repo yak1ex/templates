@@ -1,0 +1,2 @@
+#!/bin/sh
+dzil install --install-command='cpanm .'
