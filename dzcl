@@ -8,8 +8,9 @@ case $0 in
 	exit 1;
 	;;
 esac
+dir=${1:-.}
 
-for i in `find . -type d \( -exec test -d '{}/.build' \; -print -prune -o -exec test -d '{}/.git' \; -prune \)`; do
+for i in `find $dir -type d \( -exec test -d '{}/.build' \; -print -prune -o -exec test -d '{}/.git' \; -prune \)`; do
 	echo $i
 	(cd $i; dzil $command)
 done
