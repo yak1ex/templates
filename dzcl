@@ -9,7 +9,7 @@ case $0 in
 	;;
 esac
 
-for i in `find . -name '.build' -prune -o -type f -path "*/dist.ini" -print | sed -e "s,/dist.ini,,"`; do
+for i in `find . -type d \( -exec test -d '{}/.build' \; -print -prune -o -exec test -d '{}/.git' \; -prune \)`; do
 	echo $i
 	(cd $i; dzil $command)
 done
