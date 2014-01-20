@@ -12,11 +12,7 @@ case $0 in
 	exit 1;
 	;;
 esac
-if [ -z "$1" ]; then
-	dir=.
-else
-	dir=$1
-fi
+dir=${1:-.}
 
 for i in `find $dir -type d -exec test -f '{}/.git/config' \; -prune $filter -print`; do
 	if [ $command = status ]; then
