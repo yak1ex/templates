@@ -20,6 +20,7 @@ use Pod::Usage;
 use File::Find;
 use Net::Netrc;
 use Net::GitHub::V3;
+use Cwd;
 
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
@@ -31,12 +32,41 @@ $ENV{https_proxy} =~ s,^http://,connect://, if exists $ENV{https_proxy};
 my $mach = Net::Netrc->lookup('github.com');
 my $user = $mach->login;
 my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
+my $opt = { filter => 'assigned', state => 'open' };
+my $root_inode = (stat('/'))[1];
 
-my @issues = map {
-	{ repo => $_->{repository}{name}, number => $_->{number}, labels => [map { $_->{name} } @{$_->{labels}}], title => $_->{title} }
-} $gh->issue->issues(filter => 'assigned', state => 'open');
+sub repo
+{
+	my $dir = cwd();
+	do {
+		my $conf = "$dir/.git/config";
+		if(-f $conf) {
+			open my $fh, '<', $conf;
+			while(<$fh>) {
+				return $1 if m,\s*url\s*=\s*https://github.com/$user/(.*)(?:\.git)?\s*$,;
+			}
+			close $fh;
+		}
+		$dir .= '/..';
+	} while(-d $dir && (stat(_))[1] != $root_inode);
+	die 'Git config is not found';
+}
+
+my $repo = exists $opts{r} ? repo() : undef;
+
+sub mapper
+{
+	return {
+		repo => $_[0]->{repository}{name} || $repo,
+		number => $_[0]->{number},
+		labels => [map { $_->{name} } @{$_[0]->{labels}}],
+		title => $_[0]->{title},
+	};
+}
+
+my @issues = map { mapper($_) } (exists $opts{r} ? $gh->issue->repos_issues($user, $repo, $opt) : $gh->issue->issues(%$opt));
 while(exists $opts{a} && $gh->issue->has_next_page) {
-	push @issues, $gh->issue->next_page;
+	push @issues, map { mapper($_) } $gh->issue->next_page;
 }
 print map { sprintf('%-30s', "$user/$_->{repo}#$_->{number}").": $_->{title}".(' ['.join('][', @{$_->{labels}}).']')."\n" } @issues;
 
@@ -48,13 +78,16 @@ ghissue.pl - Show issues on GitHub
 
 =head1 SYNOPSIS
 
-ghissues.pl [-a|-h]
+ghissues.pl [-a|-h|-r]
 
   # Show assigned open issues on first page.
   ghissue.pl
 
   # Show all assigned open issues.
   ghissue.pl -a
+
+  # Show all assigned open issues corresponding to the current working copy.
+  ghissue.pl -ar
 
 =head1 DESCRIPTION
 
@@ -69,6 +102,12 @@ Show issues on GitHub.
 Show all assigned open issues.
 
 =for getopt 'a'
+
+=item C<-r>
+
+Limit to the repository corresponding to the current working copy
+
+=for getopt 'r'
 
 =item C<-h>
 
