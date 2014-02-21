@@ -21,6 +21,7 @@ use File::Find;
 use Net::Netrc;
 use Net::GitHub::V3;
 use Cwd;
+use List::Util qw(max);
 
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
@@ -68,7 +69,9 @@ my @issues = map { mapper($_) } (exists $opts{r} ? $gh->issue->repos_issues($use
 while(exists $opts{a} && $gh->issue->has_next_page) {
 	push @issues, map { mapper($_) } $gh->issue->next_page;
 }
-print map { sprintf('%-30s', "$user/$_->{repo}#$_->{number}").": $_->{title}".(' ['.join('][', @{$_->{labels}}).']')."\n" } @issues;
+sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
+my $len = max map { length header($_) } @issues;
+print map { sprintf("%-${len}s", header($_)).": $_->{title}".(' ['.join('][', @{$_->{labels}}).']')."\n" } @issues;
 
 __END__
 
