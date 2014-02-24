@@ -12,33 +12,42 @@ case $0 in
 	exit 1;
 	;;
 esac
+if test "$1" = '-a'; then
+	all=yes
+	shift
+elif test "$1" = '-A'; then
+	all=yes;forceshow=yes
+	shift
+fi
 dir=${1:-.}
 
+prevlen=0
 for i in `find $dir -type d -exec test -f '{}/.git/config' \; -prune $filter -print`; do
 	if [ $command = status ]; then
-		echo -n "$i :"
+
+		printf "\r%*s  \r$i :" $prevlen ''
+		prevlen=${#i}
+
+		ahead=;untrack=;dirty=;work=;
 		temp=`mktemp`
 		(cd $i; git $command > $temp)
-		if grep -q 'Your branch is ahead' $temp; then
-			echo -en " \033[1;31mAHEAD\033[0;0m"
-		fi
-		if grep -q 'Untracked' $temp; then
-			echo -en ' \033[0;33mUNTRACK\033[0;0m'
-		fi
-		if grep -q 'nothing \(added \|\)to commit' $temp; then
-			echo -n ' CLEAN'
-		else
-			echo -en ' \033[1;33mDIRTY\033[0;0m'
-		fi
+		grep -q 'Your branch is ahead' $temp && ahead=yes
+		grep -q 'Untracked' $temp && untrack=yes
+		grep -q 'nothing \(added \|\)to commit' $temp || dirty=yes
 		rm $temp
-		if (cd $i; git log --decorate -n 1 | grep -qE '[Uu]pdate.*after release|Released as|tag:'); then
-			: 
-		else
-			echo -en " \033[0;32mWORK\033[0;0m"
-                fi
-		echo
+		test -n "$all" && (cd $i; ! git log --decorate -n 1 | grep -qlE '[Uu]pdate.*after release|Released as|tag:') && work=yes
+
+		if test -n "$forceshow$ahead$untrack$dirty$work"; then
+			test -n "$ahead" && echo -en ' \033[1;31mAHEAD\033[0;0m'
+			test -n "$untrack" && echo -en ' \033[0;33mUNTRACK\033[0;0m'
+			test -n "$dirty" && echo -en ' \033[1;33mDIRTY\033[0;0m' || echo -n ' CLEAN'
+			test -n "$work" && echo -en ' \033[0;32mWORK\033[0;0m'
+			echo
+		fi
+
 	else
 		echo $i
 		(cd $i; git $command)
 	fi
 done
+echo -en '\r'
