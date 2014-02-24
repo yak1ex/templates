@@ -23,12 +23,36 @@ use Net::GitHub::V3;
 use Cwd;
 use List::Util qw(max);
 
+my %color = (
+	'middle'      => 'black on_yellow', # '#d7e102'
+	'task'        => 'on_blue',         # '#0b02e1'
+	'wontfix'     => 'black on_white',  # '#ffffff'
+	'bug'         => 'on_bright_red',   # '#fc2929'
+	'question'    => 'on_magenta',      # '#cc317c'
+	'high'        => 'on_red',          # '#e10c02'
+	'duplicate'   => 'on_bright_black', # '#cccccc'
+	'low'         => 'black on_green',  # '#02e10c'
+	'enhancement' => 'black on_cyan',   # '#84b6eb'
+	'invalid'     => 'on_bright_black', # '#e6e6e6'
+);
+
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
 pod2usage(-verbose => 2) if exists $opts{h};
 pod2usage(-msg => 'Arguments should not be files but be folders', -verbose => 0, -exitval => 1) if grep { ! -d $_ } @ARGV;
 
 $ENV{https_proxy} =~ s,^http://,connect://, if exists $ENV{https_proxy};
+
+unless(exists $opts{C}) {
+	require Term::ANSIColor;
+	Term::ANSIColor->import;
+}
+
+sub mycolor
+{
+	return '['.$_[0].']' if exists $opts{C} || ! exists $color{$_[0]};
+	return colored('['.$_[0].']', $color{$_[0]});
+}
 
 my $mach = Net::Netrc->lookup('github.com');
 my $user = $mach->login;
@@ -71,7 +95,7 @@ while(exists $opts{a} && $gh->issue->has_next_page) {
 }
 sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
 my $len = max map { length header($_) } @issues;
-print map { sprintf("%-${len}s", header($_)).": $_->{title}".(' ['.join('][', @{$_->{labels}}).']')."\n" } @issues;
+print map { sprintf("%-${len}s", header($_)).": $_->{title} ".join('', map { mycolor($_) } @{$_->{labels}})."\n" } @issues;
 
 __END__
 
@@ -81,7 +105,7 @@ ghissue.pl - Show issues on GitHub
 
 =head1 SYNOPSIS
 
-ghissues.pl [-a|-h|-r]
+ghissues.pl [-a|-h|-r|-C]
 
   # Show assigned open issues on first page.
   ghissue.pl
@@ -89,8 +113,8 @@ ghissues.pl [-a|-h|-r]
   # Show all assigned open issues.
   ghissue.pl -a
 
-  # Show all assigned open issues corresponding to the current working copy.
-  ghissue.pl -ar
+  # Show all assigned open issues corresponding to the current working copy, without color.
+  ghissue.pl -arC
 
 =head1 DESCRIPTION
 
@@ -111,6 +135,12 @@ Show all assigned open issues.
 Limit to the repository corresponding to the current working copy
 
 =for getopt 'r'
+
+=item C<-C>
+
+Do not colorize labels.
+
+=for getopt 'C'
 
 =item C<-h>
 
