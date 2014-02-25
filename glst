@@ -12,7 +12,10 @@ case $0 in
 	exit 1;
 	;;
 esac
-if test "$1" = '-a'; then
+if test "$1" = '-w'; then
+	warnonly=yes
+	shift
+elif test "$1" = '-a'; then
 	all=yes
 	shift
 elif test "$1" = '-A'; then
@@ -32,7 +35,7 @@ for i in `find $dir -type d -exec test -f '{}/.git/config' \; -prune $filter -pr
 		temp=`mktemp`
 		(cd $i; git $command > $temp)
 		grep -q 'Your branch is ahead' $temp && ahead=yes
-		grep -q 'Untracked' $temp && untrack=yes
+		test -z "$warnonly" && grep -q 'Untracked' $temp && untrack=yes
 		grep -q 'nothing \(added \|\)to commit' $temp || dirty=yes
 		rm $temp
 		test -n "$all" && (cd $i; ! git log --decorate -n 1 | grep -qlE '[Uu]pdate.*after release|Released as|tag:') && work=yes
