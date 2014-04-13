@@ -90,9 +90,11 @@ sub mapper
 }
 
 my @issues = map { mapper($_) } (exists $opts{r} ? $gh->issue->repos_issues($user, $repo, $opt) : $gh->issue->issues(%$opt));
+my ($lastpage) = $gh->issue->has_last_page ? $gh->issue->last_url =~ /page=(\d+)/ : 1;
 while(exists $opts{a} && $gh->issue->has_next_page) {
 	push @issues, map { mapper($_) } $gh->issue->next_page;
 }
+print '### Show ', scalar(@issues), ' item(s) in ', (exists $opts{a} ? $lastpage : 1), ' page(s) of total ', $lastpage, "\n";
 sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
 my $len = max map { length header($_) } @issues;
 print map { sprintf("%-${len}s", header($_)).": $_->{title} ".join('', map { mycolor($_) } @{$_->{labels}})."\n" } @issues;
