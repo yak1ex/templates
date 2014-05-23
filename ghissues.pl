@@ -39,7 +39,7 @@ my %color = (
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
 pod2usage(-verbose => 2) if exists $opts{h};
-pod2usage(-msg => 'Arguments should not be files but be folders', -verbose => 0, -exitval => 1) if grep { ! -d $_ } @ARGV;
+pod2usage(-msg => '-r and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{r} && @ARGV;
 
 $ENV{https_proxy} =~ s,^http://,connect://, if exists $ENV{https_proxy};
 
@@ -79,6 +79,26 @@ sub repo
 
 my $repo = exists $opts{r} ? repo() : undef;
 
+my $filter = sub { 1 };
+if(@ARGV) {
+	my @filter = @ARGV;
+	my $result_ = $filter[0] =~ /^!/;
+	$filter = sub {
+		my $result = $result_;
+		for my $filter_ (@filter) {
+			my $filter = $filter_;
+			my $ret = 1;
+			$ret = 0 if $filter =~ s/^!//;
+			if($filter =~ m|^/(.*)/$|) {
+				$result = $ret if $_[0]->{repo} =~ /$1/;
+			} else {
+				$result = $ret if $_[0]->{repo} eq $filter;
+			}
+		}
+		return $result;
+	};
+}
+
 sub mapper
 {
 	return {
@@ -94,6 +114,7 @@ my ($lastpage) = $gh->issue->has_last_page ? $gh->issue->last_url =~ /page=(\d+)
 while(exists $opts{a} && $gh->issue->has_next_page) {
 	push @issues, map { mapper($_) } $gh->issue->next_page;
 }
+@issues = grep { $filter->($_) } @issues;
 print '### Show ', scalar(@issues), ' item(s) in ', (exists $opts{a} ? $lastpage : 1), ' page(s) of total ', $lastpage, "\n";
 sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
 my $len = max map { length header($_) } @issues;
@@ -107,7 +128,7 @@ ghissue.pl - Show issues on GitHub
 
 =head1 SYNOPSIS
 
-ghissues.pl [-a|-h|-r|-C]
+ghissues.pl [-a|-h|-r|-C] [E<lt>filterE<gt>...]
 
   # Show assigned open issues on first page.
   ghissue.pl
@@ -117,6 +138,9 @@ ghissues.pl [-a|-h|-r|-C]
 
   # Show all assigned open issues corresponding to the current working copy, without color.
   ghissue.pl -arC
+
+  # Show all assigned open issues, excluding ones for repository matching /ccf/ but including just ccf
+  ghissue.pl -a !/ccf/ ccf
 
 =head1 DESCRIPTION
 
@@ -149,6 +173,12 @@ Do not colorize labels.
 Show POD help
 
 =for getopt 'h'
+
+=item C<E<lt>filterE<gt>>
+
+Specify repository filter specs. Beginning with '!' means exclusion, otherwise inclusion.
+Treated as regexp if enclosed by '/'. The last match is applicable if multiple filters are specified.
+If no matches are made, negation of the type of the first specified filter is applied for all.
 
 =back
 
