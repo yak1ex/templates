@@ -429,4 +429,24 @@ struct rel {
 	}
 };
 
+///////////////////////////////////////////////////////////////////////
+
+
+// INVARIANT: std::is_sorted(middle, last)
+template<typename BI>
+bool next_ppermutation(BI first, BI middle, BI last)
+{
+	std::reverse(middle, last);
+	return std::next_permutation(first, last);
+}
+
+// INVARIANT: std::is_sorted(middle, last)
+template<typename BI>
+bool prev_ppermutation(BI first, BI middle, BI last)
+{
+	bool ret = std::prev_permutation(first, last);
+	std::reverse(middle, last);
+	return ret;
+}
+
 #endif
