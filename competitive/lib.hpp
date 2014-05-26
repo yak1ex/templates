@@ -449,4 +449,26 @@ bool prev_ppermutation(BI first, BI middle, BI last)
 	return ret;
 }
 
+// Easy to implment but much slow
+// INVARIANT: std::is_sorted(middle, last)
+template<typename BI>
+bool next_combination_(BI first, BI middle, BI last)
+{
+	do {
+		if(!next_ppermutation(first, middle, last)) return false;
+	} while(!std::is_sorted(first, middle));
+	return true;
+}
+
+// Easy to implement but much slow
+// INVARIANT: std::is_sorted(middle, last)
+template<typename BI>
+bool prev_combination_(BI first, BI middle, BI last)
+{
+	do {
+		if(!prev_ppermutation(first, middle, last)) return false;
+	} while(!std::is_sorted(first, middle));
+	return true;
+}
+
 #endif
