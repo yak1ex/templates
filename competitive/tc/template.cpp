@@ -4,28 +4,23 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
-#include <string> // includes iterator
+#include <string>
 #include <map>
 #include <set>
-#include <queue> // includes vector
-#include <stack> // includes deque
-#include <tuple> // includes array, utility including initializer_list
+#include <queue>
+#include <stack>
+#include <tuple>
 #include <cmath>
 #include <cassert>
 
 typedef unsigned long long ULL;
-typedef unsigned int UI;
 typedef unsigned char UC;
 
+#define REC(f, r, a) std::function< r a > f = [&] a -> r
 #define RNG(v) (v).begin(), (v).end()
 template<typename T> struct ir {
-    struct irit {
-        T value;
-        operator int&() { return value; }
-        int operator *() { return value; }
-    };
-    irit begin() const { return { first }; }
-    irit end() const { return { last }; }
+    struct irit { T value; operator int&() { return value; } int operator *() { return value; } };
+    irit begin() const { return { first }; } irit end() const { return { last }; }
     T first, last;
 };
 inline ir<int> IR(int first, int last) { assert(first <= last); return { first, last }; }

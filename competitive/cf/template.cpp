@@ -1,44 +1,29 @@
+#include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <iomanip>
-
-#include <iterator>
-
 #include <algorithm>
 #include <numeric>
-#include <utility>
 #include <limits>
-
 #include <string>
-
-#include <vector>
-#include <deque>
 #include <map>
 #include <set>
-#include <unordered_map>
-#include <unordered_set>
 #include <queue>
 #include <stack>
-
 #include <tuple>
-#include <initializer_list>
-
 #include <cmath>
+#include <cassert>
 
 typedef unsigned long long ULL;
-typedef long long LL;
-typedef unsigned long UL;
-typedef unsigned int UI;
-typedef unsigned short US;
 typedef unsigned char UC;
 
-#define MP make_pair
-#define MT make_tuple
+#define REC(f, r, a) std::function< r a > f = [&] a -> r
 #define RNG(v) (v).begin(), (v).end()
-#define RRNG(v) (v).rbegin(), (v).rend()
-#define REP(v, e) for(UI v = 0U; v < e; ++v)
-#define REPS(v, s, e) for(UI v = s; v < e; ++v)
-#define REPT(type, v, s, e) for(type v = s; v < e; ++v)
+template<typename T> struct ir {
+    struct irit { T value; operator int&() { return value; } int operator *() { return value; } };
+    irit begin() const { return { first }; } irit end() const { return { last }; }
+    T first, last;
+};
+inline ir<int> IR(int first, int last) { assert(first <= last); return { first, last }; }
 
 using namespace std;
 
