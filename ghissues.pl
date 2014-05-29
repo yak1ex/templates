@@ -40,6 +40,9 @@ my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
 pod2usage(-verbose => 2) if exists $opts{h};
 pod2usage(-msg => '-r and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{r} && @ARGV;
+pod2usage(-msg => '-s and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && @ARGV;
+pod2usage(-msg => '-s and -r are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && exists $opts{r};
+$opts{a} ||= $opts{s};
 
 $ENV{https_proxy} =~ s,^http://,connect://, if exists $ENV{https_proxy};
 
@@ -114,11 +117,23 @@ my ($lastpage) = $gh->issue->has_last_page ? $gh->issue->last_url =~ /page=(\d+)
 while(exists $opts{a} && $gh->issue->has_next_page) {
 	push @issues, map { mapper($_) } $gh->issue->next_page;
 }
-@issues = grep { $filter->($_) } @issues;
-print '### Show ', scalar(@issues), ' item(s) in ', (exists $opts{a} ? $lastpage : 1), ' page(s) of total ', $lastpage, "\n";
-sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
-my $len = max map { length header($_) } @issues;
-print map { sprintf("%-${len}s", header($_)).": $_->{title} ".join('', map { mycolor($_) } @{$_->{labels}})."\n" } @issues;
+if(exists $opts{s}) {
+	my %count; my $len = 0;
+	for my $issue (@issues) {
+		$len = max $len, length($issue->{repo});
+		$count{$issue->{repo}} ||= 0;
+		++$count{$issue->{repo}};
+	}
+	foreach my $name (sort { $count{$b} <=> $count{$a} || $a cmp $b } keys %count) {
+		printf "%-${len}s : %4d\n", $name, $count{$name};
+	}
+} else {
+	@issues = grep { $filter->($_) } @issues;
+	print '### Show ', scalar(@issues), ' item(s) in ', (exists $opts{a} ? $lastpage : 1), ' page(s) of total ', $lastpage, "\n";
+	sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
+	my $len = max map { length header($_) } @issues;
+	print map { sprintf("%-${len}s", header($_)).": $_->{title} ".join('', map { mycolor($_) } @{$_->{labels}})."\n" } @issues;
+}
 
 __END__
 
@@ -155,6 +170,13 @@ Show issues on GitHub.
 Show all assigned open issues.
 
 =for getopt 'a'
+
+=item C<-s>
+
+Show summary info, which is the number of issues grouped by repository.
+This flag implies -a flag.
+
+=for getopt 's'
 
 =item C<-r>
 
