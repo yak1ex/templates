@@ -71,7 +71,7 @@ sub repo
 		if(-f $conf) {
 			open my $fh, '<', $conf;
 			while(<$fh>) {
-				return $1 if m,\s*url\s*=\s*https://github.com/$user/(.*?)(?:\.git)?\s*$,;
+				return $1 if m,\s*url\s*=\s*(?:https://github.com/|git\@github.com:)$user/(.*?)(?:\.git)?\s*$,;
 			}
 			close $fh;
 		}
