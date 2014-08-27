@@ -28,6 +28,7 @@
 	lt = log --decorate --stat
 	lo = log --decorate --oneline
 	lg = log --decorate --oneline --graph
+	lga = log --decorate --oneline --graph --all
 	mg = merge
 	pl = pull
 	pr = pull --rebase
@@ -35,10 +36,14 @@
 	pt = push --tags
 	rc = rebase --continue
 	ri = rebase -i
+	ro = rebase -i origin/master
+	rr = rebase origin/master
 	s = status
 	ss = status -s
 	st = status
 	sc = svn clone --no-minimize-url --prefix svn/ -s
-#[http]
-#	sslcainfo = /usr/ssl/certs/yak.myhome.cx.ca.pem
-#	sslcainfo = /usr/ssl/certs/DigiCertHighAssuranceEVRootCA.crt
+	ta = tag -l
+[http]
+	sslcapath = /usr/ssl/certs
+[push]
+	default = matching
