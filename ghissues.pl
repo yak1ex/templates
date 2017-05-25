@@ -44,8 +44,6 @@ pod2usage(-msg => '-s and filter arguments are exclusive', -verbose => 0, -exitv
 pod2usage(-msg => '-s and -r are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && exists $opts{r};
 $opts{a} ||= $opts{s};
 
-$ENV{PERL_LWP_ENV_PROXY} = 1 if exists $ENV{https_proxy};
-
 unless(exists $opts{C}) {
 	require Term::ANSIColor;
 	Term::ANSIColor->import;
@@ -60,6 +58,9 @@ sub mycolor
 my $mach = Net::Netrc->lookup('github.com');
 my $user = $mach->login;
 my $gh = Net::GitHub::V3->new(login => $user, pass => $mach->password);
+if(exists $ENV{https_proxy}) {
+  $gh->ua->proxy('https', $ENV{https_proxy});
+}
 my $opt = { filter => 'assigned', state => 'open' };
 my $root_inode = (stat('/'))[1];
 
