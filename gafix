@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# gafix HEAD~10..HEAD 'oldname' 'oldmail@example.com' 'new name' 'newmail@example.com'
+# gafix HEAD~10..HEAD 'new name' 'newmail@example.com'
+# gafix HEAD~10..HEAD
+# gafix fixup
+#
+# ref. https://help.github.com/articles/changing-author-info/
+# ref. http://d.hatena.ne.jp/flalin/20110330/1301484566
+
+function filterall() {
+  range=$1
+  newname=$2
+  newmail=$3
+  git filter-branch -f --env-filter "GIT_AUTHOR_NAME=\"$newname\"; GIT_AUTHOR_EMAIL=\"$newmail\"; GIT_COMMITTER_NAME=\"$newname\"; GIT_COMMITTER_EMAIL=\"$newmail\";" $range
+}
+
+function filterold() {
+  range=$1
+  oldname=$2
+  oldmail=$3
+  newname=$4
+  newmail=$5
+  git filter-branch --commit-filter '
+    if [ "$GIT_COMMITTER_NAME" = "$oldname" -a "$GIT_COMMITTER_MAIL" = "$oldmail" ]; then
+      GIT_COMMITTER_NAME="$newname";
+      GIT_AUTHOR_NAME="$newname";
+      GIT_COMMITTER_EMAIL="$newmail";
+      GIT_AUTHOR_EMAIL="$newmail";
+      git commit-tree "$@";
+    else
+      git commit-tree "$@";
+    fi' $range
+}
+
+function menu() {
+  select i in $1 `grep -v author ~/.template.yaml | sed -e '{N; s/\n//; s/  - name: //; s/ *email: /|/; s/ *$//; s/ /=/g; P; D}' `; do name=`expr $i : '\([^|]*\)' | sed -e 's,=, ,'`; mail=`expr $i : '.*|\(.*\)'`; break; done
+}
+
+case $# in
+1)
+  if [ "$1" = fixup ]; then
+    git push --force --tags origin 'refs/heads/*'
+    exit 0
+  else
+    echo '[old name/email]'
+    menu "|"
+    oldname=$name
+    oldmail=$mail
+    echo '[new name/email]'
+    menu
+    newname=$name
+    newmail=$mail
+    if [ "$oldname" = "" ]; then
+      filterall "$1" "$newname" "$newmail"
+      exit 0
+    else
+      filterold "$1" "$oldname" "$oldmail" "$newname" "$newmail"
+      exit 0
+    fi
+  fi
+  ;;
+3)
+  filterall "$@"
+  exit 0
+  ;;
+5)
+  filterold "$@"
+  exit 0
+  ;;
+esac
+
+echo invalid arguments
+echo
+cat <<EOF
+[USAGE]
+
+gafix <revision_range> [<oldname> <oldmail>] <newname> <newmail>
+  Explicitly specify mail/name
+
+gafix <revision_range>
+  Interactive mail/name selection from ~/.template.yaml
+
+gafix fixup
+  Execute forced push
+EOF
+exit 1
+
