@@ -42,7 +42,15 @@ pod2usage(-verbose => 2) if exists $opts{h};
 pod2usage(-msg => '-r and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{r} && @ARGV;
 pod2usage(-msg => '-s and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && @ARGV;
 pod2usage(-msg => '-s and -r are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && exists $opts{r};
+pod2usage(-msg => '-N requires 3 arguments', -verbose => 0, -exitval => 1) if exists $opts{N} && @ARGV != 3;
+pod2usage(-msg => '-N and -a are exclusive', -verbose => 0, -exitval => 1) if exists $opts{N} && exists $opts{a};
+pod2usage(-msg => '-N and -s are exclusive', -verbose => 0, -exitval => 1) if exists $opts{N} && exists $opts{a};
+pod2usage(-msg => '-r and -a are exclusive', -verbose => 0, -exitval => 1) if exists $opts{r} && exists $opts{a};
+my @labels = exists $opts{N} ? (split /,/, $ARGV[2]) : ();
+my @unknown_labels = grep { ! exists $color{$_} } @labels;
+pod2usage(-msg => "unknown label(s) @{[join ', ', map { '\"'.$_.'\"' } @unknown_labels]} exist(s)", -verbose => 0, -exitval => 1) if exists $opts{N} && @unknown_labels;
 $opts{a} ||= $opts{s};
+$opts{r} ||= $opts{N};
 
 unless(exists $opts{C}) {
 	require Term::ANSIColor;
@@ -80,8 +88,13 @@ sub repo
 	} while(-d $dir && (stat(_))[1] != $root_inode);
 	die 'Git config is not found';
 }
-
 my $repo = exists $opts{r} ? repo() : undef;
+
+if(exists $opts{N}) {
+	my ($title, $body, $labels) = @ARGV;
+	undef @ARGV;
+	$gh->issue->create_issue($user, $repo, { title => $title, body => $body, assignees => [ $user ], labels => \@labels });
+}
 
 my $filter = sub { 1 };
 if(@ARGV) {
@@ -144,23 +157,31 @@ ghissue.pl - Show issues on GitHub
 
 =head1 SYNOPSIS
 
-ghissues.pl [-a|-h|-r|-C] [E<lt>filterE<gt>...]
+ghissues.pl [-a|-r|-C] [E<lt>filterE<gt>...]
+
+ghissues.pl [-N] E<lt>titleE<gt> E<lt>bodyE<gt> E<lt>labelsE<gt>
+
+ghissues.pl -h
 
   # Show assigned open issues on first page.
-  ghissue.pl
+  ghissues.pl
 
   # Show all assigned open issues.
-  ghissue.pl -a
+  ghissues.pl -a
 
   # Show all assigned open issues corresponding to the current working copy, without color.
-  ghissue.pl -arC
+  ghissues.pl -arC
 
-  # Show all assigned open issues, excluding ones for repository matching /ccf/ but including just ccf
-  ghissue.pl -a !/ccf/ ccf
+  # Show all assigned open issues, excluding ones for repository matching /ccf/ but including just ccf.
+  ghissues.pl -a !/ccf/ ccf
+
+  # Create an issue on the repository corresponding to the current working copy.
+  ghissues.pl -N 'title' 'description_line_1
+  description_line_2' enhancement,middle
 
 =head1 DESCRIPTION
 
-Show issues on GitHub.
+Show issues or create an issue on GitHub.
 
 =head1 OPTIONS
 
@@ -175,7 +196,7 @@ Show all assigned open issues.
 =item C<-s>
 
 Show summary info, which is the number of issues grouped by repository.
-This flag implies -a flag.
+This flag implies C<-a> flag.
 
 =for getopt 's'
 
@@ -190,6 +211,17 @@ Limit to the repository corresponding to the current working copy
 Do not colorize labels.
 
 =for getopt 'C'
+
+=item C<-N>
+
+Create a new issue and show issues as if C<-r> is specified.
+Following commandline arguments are E<lt>titleE<gt>, E<lt>bodyE<gt>, and E<lt>labelsE<gt>.
+
+E<lt>labelsE<gt> consists of comma-separated labels.
+
+Assignee is automatically set.
+
+=for getopt 'N'
 
 =item C<-h>
 
