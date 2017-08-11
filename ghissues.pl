@@ -38,28 +38,28 @@ my %color = (
 
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
-pod2usage(-verbose => 2) if exists $opts{h};
-pod2usage(-msg => '-r and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{r} && @ARGV;
-pod2usage(-msg => '-s and filter arguments are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && @ARGV;
-pod2usage(-msg => '-s and -r are exclusive', -verbose => 0, -exitval => 1) if exists $opts{s} && exists $opts{r};
-pod2usage(-msg => '-N requires 3 arguments', -verbose => 0, -exitval => 1) if exists $opts{N} && @ARGV != 3;
-pod2usage(-msg => '-N and -a are exclusive', -verbose => 0, -exitval => 1) if exists $opts{N} && exists $opts{a};
-pod2usage(-msg => '-N and -s are exclusive', -verbose => 0, -exitval => 1) if exists $opts{N} && exists $opts{a};
-pod2usage(-msg => '-r and -a are exclusive', -verbose => 0, -exitval => 1) if exists $opts{r} && exists $opts{a};
-my @labels = exists $opts{N} ? (split /,/, $ARGV[2]) : ();
+pod2usage(-verbose => 2) if $opts{h};
+pod2usage(-msg => '-r and filter arguments are exclusive', -verbose => 0, -exitval => 1) if $opts{r} && @ARGV;
+pod2usage(-msg => '-s and filter arguments are exclusive', -verbose => 0, -exitval => 1) if $opts{s} && @ARGV;
+pod2usage(-msg => '-s and -r are exclusive', -verbose => 0, -exitval => 1) if $opts{s} && $opts{r};
+pod2usage(-msg => '-N requires 3 arguments', -verbose => 0, -exitval => 1) if $opts{N} && @ARGV != 3;
+pod2usage(-msg => '-N and -a are exclusive', -verbose => 0, -exitval => 1) if $opts{N} && $opts{a};
+pod2usage(-msg => '-N and -s are exclusive', -verbose => 0, -exitval => 1) if $opts{N} && $opts{a};
+pod2usage(-msg => '-r and -a are exclusive', -verbose => 0, -exitval => 1) if $opts{r} && $opts{a};
+my @labels = $opts{N} ? (split /,/, $ARGV[2]) : ();
 my @unknown_labels = grep { ! exists $color{$_} } @labels;
-pod2usage(-msg => "unknown label(s) @{[join ', ', map { '\"'.$_.'\"' } @unknown_labels]} exist(s)", -verbose => 0, -exitval => 1) if exists $opts{N} && @unknown_labels;
+pod2usage(-msg => "unknown label(s) @{[join ', ', map { '\"'.$_.'\"' } @unknown_labels]} exist(s)", -verbose => 0, -exitval => 1) if $opts{N} && @unknown_labels;
 $opts{a} ||= $opts{s};
 $opts{r} ||= $opts{N};
 
-unless(exists $opts{C}) {
+unless($opts{C}) {
 	require Term::ANSIColor;
 	Term::ANSIColor->import;
 }
 
 sub mycolor
 {
-	return '['.$_[0].']' if exists $opts{C} || ! exists $color{$_[0]};
+	return '['.$_[0].']' if $opts{C} || ! exists $color{$_[0]};
 	return colored('['.$_[0].']', $color{$_[0]});
 }
 
@@ -88,9 +88,9 @@ sub repo
 	} while(-d $dir && (stat(_))[1] != $root_inode);
 	die 'Git config is not found';
 }
-my $repo = exists $opts{r} ? repo() : undef;
+my $repo = $opts{r} ? repo() : undef;
 
-if(exists $opts{N}) {
+if($opts{N}) {
 	my ($title, $body, $labels) = @ARGV;
 	undef @ARGV;
 	$gh->issue->create_issue($user, $repo, { title => $title, body => $body, assignees => [ $user ], labels => \@labels });
@@ -126,12 +126,12 @@ sub mapper
 	};
 }
 
-my @issues = map { mapper($_) } (exists $opts{r} ? $gh->issue->repos_issues($user, $repo, $opt) : $gh->issue->issues(%$opt));
+my @issues = map { mapper($_) } ($opts{r} ? $gh->issue->repos_issues($user, $repo, $opt) : $gh->issue->issues(%$opt));
 my ($lastpage) = $gh->issue->has_last_page ? $gh->issue->last_url =~ /page=(\d+)/ : 1;
-while(exists $opts{a} && $gh->issue->has_next_page) {
+while($opts{a} && $gh->issue->has_next_page) {
 	push @issues, map { mapper($_) } $gh->issue->next_page;
 }
-if(exists $opts{s}) {
+if($opts{s}) {
 	my %count; my $len = 0;
 	for my $issue (@issues) {
 		$len = max $len, length($issue->{repo});
@@ -143,7 +143,7 @@ if(exists $opts{s}) {
 	}
 } else {
 	@issues = grep { $filter->($_) } @issues;
-	print '### Show ', scalar(@issues), ' item(s) in ', (exists $opts{a} ? $lastpage : 1), ' page(s) of total ', $lastpage, "\n";
+	print '### Show ', scalar(@issues), ' item(s) in ', ($opts{a} ? $lastpage : 1), ' page(s) of total ', $lastpage, "\n";
 	sub header { return "$user/$_[0]->{repo}#$_[0]->{number} " }
 	my $len = max map { length header($_) } @issues;
 	print map { sprintf("%-${len}s", header($_)).": $_->{title} ".join('', map { mycolor($_) } @{$_->{labels}})."\n" } @issues;
