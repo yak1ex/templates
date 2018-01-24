@@ -34,13 +34,25 @@ pod2usage(-msg => 'At least one repo MUST be specified', -verbose => 0, -exitval
 my $CONF = $ENV{HOME}.'/.template.yaml';
 my $conf = -r $CONF ? YAML::Any::LoadFile($CONF) : {};
 my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
+my ($gitname) = map { s/\@users.noreply.github.com//; $_ } grep { /\@users.noreply.github.com/ } map { $_->{email} } @{$conf->{author}};
 my $conf_user = Config::INI::Reader->read_file("$ENV{HOME}/.gitconfig");
 my $def_user  = $conf_user->{user}{name};
 my $def_email = $conf_user->{user}{email};
 
-while(my $repo = shift) {
+while(my $line = shift) {
+	my ($url, $repo) = split(/=/, $line);
+	if(! defined($repo)) {
+		($repo = $url) =~ s,.*\/,,;
+	}
+	if($url !~ m,^http(|s)://,) { # not absolute URL
+		if($url =~ /[0-9a-f]{32}/) { # gist hash
+			$url = "https://gist.github.com/${gitname}/${url}.git";
+		} else {
+			$url = "https://github.com/${gitname}/${url}.git";
+		}
+	}
 	warn "$repo already exists" and next if -e $repo;
-	system "git clone https://github.com/yak1ex/${repo}.git";
+	system "git clone $url $repo";
 	my $conf_repo = Config::INI::Reader->read_file("${repo}/.git/config");
 	my $default = to_str($conf->{author}[0]);
 	if(-f "${repo}/dist.ini" || -f "${repo}/Makefile.PL" || -f "${repo}/Build.PL") { # Perl module
