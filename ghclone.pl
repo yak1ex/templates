@@ -76,6 +76,37 @@ ghclone.pl - Clone with user configuration
 
 =head1 SYNOPSIS
 
+ghclone.pl C<repos>...
+
+ghclone.pl -h
+
 =head1 DESCRIPTION
+
+Clone from github or gist with author setting from ${HOME}/.template.yaml
+
+=head1 OPTIONS
+
+=over 4
+
+=item C<repos>...
+
+Gist hashes and/or github repository names.
+You can specify the working folder name as C<repos>=C<working_folder>
+
+=back
+
+=head1 CONFIGURATION
+
+Choices for author are made from ${HOME}/.template.yaml
+
+The yaml file should have entries as the followings:
+
+  author:
+    - name: Name1
+      email: Email1
+    - name: Name2
+      email: Email2
+
+The name of the first entry matching with C<gitname>@users.noreply.github.com is used as repo user.
 
 =cut
