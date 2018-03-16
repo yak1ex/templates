@@ -1,1 +1,4 @@
 *.BAK
+build/*.exe
+build/*.o
+build/*.obj
