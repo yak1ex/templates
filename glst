@@ -26,18 +26,18 @@ dir=${1:-.}
 
 prevlen=0
 for i in `find $dir -type d -exec test -f '{}/.git/config' \; -prune $filter -print`; do
+
+	printf "\r%*s  \r$i :" $prevlen ''
+	prevlen=${#i}
+
+	temp=`mktemp`
+	(cd $i; git $command > $temp 2>&1)
+
 	if [ $command = status ]; then
-
-		printf "\r%*s  \r$i :" $prevlen ''
-		prevlen=${#i}
-
 		ahead=;untrack=;dirty=;work=;
-		temp=`mktemp`
-		(cd $i; git $command > $temp)
 		grep -q 'Your branch is ahead' $temp && ahead=yes
 		test -z "$warnonly" && grep -q 'Untracked' $temp && untrack=yes
 		grep -q 'nothing \(added \|\)to commit' $temp || dirty=yes
-		rm $temp
 		test -n "$all" && (cd $i; ! git log --decorate -n 1 | grep -qlE '[Uu]pdate.*after release|Released as|tag:') && work=yes
 
 		if test -n "$forceshow$ahead$untrack$dirty$work"; then
@@ -47,10 +47,14 @@ for i in `find $dir -type d -exec test -f '{}/.git/config' \; -prune $filter -pr
 			test -n "$work" && echo -en ' \033[0;32mWORK\033[0;0m'
 			echo
 		fi
-
 	else
-		echo $i
-		(cd $i; git $command)
+		if grep -q 'Already up to date.' $temp; then
+			:
+		else
+			echo
+			cat $temp
+		fi
 	fi
+	rm $temp
 done
 echo -en '\r'
