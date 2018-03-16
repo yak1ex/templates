@@ -1,0 +1,13 @@
+# Polyglot in make and nmake
+# ref. https://stackoverflow.com/a/30906085
+#\
+!if 1 #\
+# [[[nmake]]] \
+CXX=cl #\
+!else
+# [[[make]]]
+CXX=i686-w64-mingw32-g++
+#\
+!endif
+
+# Actual rules here
