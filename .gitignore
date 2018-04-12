@@ -2,3 +2,6 @@
 build/*.exe
 build/*.o
 build/*.obj
+competitive/cf/template.cpp
+competitive/gcj/template.cpp
+competitive/tc/template.cpp
