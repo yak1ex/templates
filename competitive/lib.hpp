@@ -519,4 +519,20 @@ inline bool prev_combination(BI first, BI mid, BI last)
 	return next_combination_imp(mid, last, first, mid);
 }
 
+///////////////////////////////////////////////////////////////////////
+
+// Tuple arithmetic operators
+template<std::size_t ... I, typename ... T, typename ... U, typename F> auto apply(const std::tuple<T...>& t1, const std::tuple<U...>& t2, F f, std::index_sequence<I...>) { return std::make_tuple(f(std::get<I>(t1), std::get<I>(t2))...); }
+template<std::size_t ... I, typename T, typename U, typename F> auto apply(const T& t, const U& u, F f, std::index_sequence<I...>) { return std::make_tuple(f(std::get<I>(t), u)...); }
+template<typename ... T, typename ... U> auto operator+(const std::tuple<T...> &t1, const std::tuple<U...> &t2) { static_assert(sizeof...(T)==sizeof...(U)); return apply(t1, t2, [](const auto& v1, const auto& v2) { return v1 + v2; }, std::index_sequence_for<T...>()); }
+template<typename ... T, typename ... U> auto operator-(const std::tuple<T...> &t1, const std::tuple<U...> &t2) { static_assert(sizeof...(T)==sizeof...(U)); return apply(t1, t2, [](const auto& v1, const auto& v2) { return v1 - v2; }, std::index_sequence_for<T...>()); }
+template<typename U, typename ... T> auto operator*(const std::tuple<T...> &t, const U& u) { return apply(t, u, [](const auto& v1, const auto& v2) { return v1 * v2; }, std::index_sequence_for<T...>()); }
+template<typename U, typename ... T> auto operator*(const U& u, const std::tuple<T...> &t) { return apply(t, u, [](const auto& v1, const auto& v2) { return v1 * v2; }, std::index_sequence_for<T...>()); }
+template<typename U, typename ... T> auto operator/(const std::tuple<T...> &t, const U& u) { return apply(t, u, [](const auto& v1, const auto& v2) { return v1 / v2; }, std::index_sequence_for<T...>()); }
+
+// Tuple stream writer
+template<typename T> void outer(std::ostream &os, const T& t, std::size_t size, std::index_sequence<>) {}
+template<typename T, std::size_t I0, std::size_t ... I> void outer(std::ostream &os, const T& t, std::size_t size, std::index_sequence<I0, I...>) { os << (I0 == 0 ? '(' : ','); os << std::get<I0>(t); if(I0 == size - 1) os << ')'; outer(os, t, size, std::index_sequence<I...>()); }
+template<typename ... T> std::ostream& operator<<(std::ostream &os, const std::tuple<T...> &t) { outer(os, t, sizeof...(T), std::index_sequence_for<T...>()); }
+
 #endif
