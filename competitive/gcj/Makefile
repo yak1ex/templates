@@ -1,5 +1,11 @@
 all: sa sb sc sd la lb lc ld
 
+clean:
+	-rm -f *.exe *.BAK *.bak
+	$(foreach t,a b c d,echo > $(t).txt; cp template.cpp $(t).cpp;)
+distclean:
+	-rm -f *.exe *.BAK *.bak [a-d].{txt,cpp}
+
 CXX=g++
 CXXFLAGS=-O2 -W -Wall -Wconversion -Wshadow -Wno-unused-local-typedefs -std=c++11 -I/usr/local/include
 
