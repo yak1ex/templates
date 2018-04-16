@@ -4,4 +4,5 @@ build/*.o
 build/*.obj
 competitive/cf/template.cpp
 competitive/gcj/template.cpp
+competitive/gcj/[abcd].*
 competitive/tc/template.cpp
