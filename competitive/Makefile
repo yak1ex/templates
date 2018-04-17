@@ -5,5 +5,8 @@ tcstd=c++11
 
 all: $(TEMPLATE)
 
+clean:
+	-rm -rf $(TEMPLATE)
+
 $(TEMPLATE): template.m4
 	m4 -D mode=$(@:/template.cpp=) -D cppstd=$($(@:/template.cpp=)std) template.m4 > $@

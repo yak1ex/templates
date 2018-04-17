@@ -1,7 +1,7 @@
 *.BAK
-build/*.exe
-build/*.o
-build/*.obj
+*.exe
+*.o
+*.obj
 competitive/cf/template.cpp
 competitive/gcj/template.cpp
 competitive/gcj/[abcd].*
