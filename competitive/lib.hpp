@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <iterator>
+#include <map>
 #include <cmath>
 #include <vector>
 
@@ -62,7 +63,7 @@ inline double polygon(Iterator x_begin, Iterator x_end, Iterator y_begin)
 
 inline double regular_polygon(int n, double length)
 {
-	return n / 4.0 * length * length / tan(M_PI / n);
+	return n / 4.0 * length * length / tan(4.0 * std::atan(1) / n);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -85,10 +86,10 @@ inline long long mygcd(long long m, long long n)
 // r.first == gcd(m, n) && r.second.first * m + r.second.second * n = gcd(m, n)
 
 template<typename T>
-pair<T, pair<T, T> > exgcd(T m, T n)
+std::pair<T, std::pair<T, T> > exgcd(T m, T n)
 {
 	if(m < n) {
-		pair<T, pair<T, T> > t = exgcd(n, m);
+		std::pair<T, std::pair<T, T> > t = exgcd(n, m);
 		swap(t.second.first, t.second.second);
 		return t;
 	}
@@ -101,7 +102,7 @@ pair<T, pair<T, T> > exgcd(T m, T n)
 		b[head] = b[head] - q * b[!head];
 		head = !head;
 	}
-	return make_pair(r[head], make_pair(a[head], b[head]));
+	return std::make_pair(r[head], std::make_pair(a[head], b[head]));
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -210,11 +211,11 @@ public:
 	template<typename F>
 	void roots(F f) const
 	{
-	        typename Parent::const_iterator it_end = m_parent.end();
-	        IsParent pred;
-	        for(typename Parent::const_iterator it = m_parent.begin(); it != it_end; ++it) {
-	                if(pred(*it)) f(*it);
-	        }
+		typename Parent::const_iterator it_end = m_parent.end();
+		IsParent pred;
+		for(typename Parent::const_iterator it = m_parent.begin(); it != it_end; ++it) {
+				if(pred(*it)) f(*it);
+		}
 	}
 };
 
@@ -342,60 +343,60 @@ inline void bit_clr(T &n, T pos)
 template<typename T>
 T modinv(T n, T p)
 {
-  if(n > p) n = n % p;
-  if(n % p == 0) return 0;
-  if(n == 1 || n == p-1) return n;
-  T m = p;
-  T pk = 0, k = 1;
+	if(n > p) n = n % p;
+	if(n % p == 0) return 0;
+	if(n == 1 || n == p-1) return n;
+	T m = p;
+	T pk = 0, k = 1;
 
-  while(1) {
-    T tn = m % n;
-    T r = (m - tn) / n;
-    T tk = pk - r * k;
-    pk = k;
-    k = tk;
-    if(tn == 1) return k < 0 ? k%p+p : k;
-    m = n;
-    n = tn;
-  }
+	while(1) {
+		T tn = m % n;
+		T r = (m - tn) / n;
+		T tk = pk - r * k;
+		pk = k;
+		k = tk;
+		if(tn == 1) return k < 0 ? k%p+p : k;
+		m = n;
+		n = tn;
+	}
 }
 
 template<typename T, T modulo>
 class rf
 {
 private:
-  T value; // always modulo
-  void fixup() { value = value<0?value%modulo+modulo:value%modulo; }
-  void set(ULL val) { value = val%modulo; }
+	T value; // always modulo
+	void fixup() { value = value<0?value%modulo+modulo:value%modulo; }
+	void set(ULL val) { value = val%modulo; }
 public:
-  rf(T t) : value(t<0?t%modulo+modulo:t%modulo) {}
-  operator T() const { return value; }
-  T get() const { return value; }
-  rf inv() const { return rf(modinv(value, modulo)); }
-  rf& operator+=(rf v) { value+=v.get(); fixup(); return *this; }
-  rf& operator-=(rf v) { value-=v.get(); fixup(); return *this; }
-  rf& operator*=(rf v) { ULL temp = value; temp*=v.get(); set(temp); return *this; }
-  rf& operator/=(rf v) { ULL temp = value; temp*=v.inv.get(); set(temp); return *this; }
+	rf(T t) : value(t<0?t%modulo+modulo:t%modulo) {}
+	operator T() const { return value; }
+	T get() const { return value; }
+	rf inv() const { return rf(modinv(value, modulo)); }
+	rf& operator+=(rf v) { value+=v.get(); fixup(); return *this; }
+	rf& operator-=(rf v) { value-=v.get(); fixup(); return *this; }
+	rf& operator*=(rf v) { ULL temp = value; temp*=v.get(); set(temp); return *this; }
+	rf& operator/=(rf v) { ULL temp = value; temp*=v.inv.get(); set(temp); return *this; }
 };
 template<typename T, T modulo>
 rf<T,modulo> operator+(rf<T,modulo> v1, rf<T,modulo> v2)
 {
-  return rf<T,modulo>(v1.get()+v2.get());
+	return rf<T,modulo>(v1.get()+v2.get());
 }
 template<typename T, T modulo>
 rf<T,modulo> operator-(rf<T,modulo> v1, rf<T,modulo> v2)
 {
-  return rf<T,modulo>(v1.get()-v2.get());
+	return rf<T,modulo>(v1.get()-v2.get());
 }
 template<typename T, T modulo>
 rf<T,modulo> operator*(rf<T,modulo> v1, rf<T,modulo> v2)
 {
-  return rf<T,modulo>(v1.get()*v2.get());
+	return rf<T,modulo>(v1.get()*v2.get());
 }
 template<typename T, T modulo>
 rf<T,modulo> operator/(rf<T,modulo> v1, rf<T,modulo> v2)
 {
-  return v1*v2.inv();
+	return v1*v2.inv();
 }
 
 template<typename T, T modulo>
