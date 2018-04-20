@@ -536,4 +536,49 @@ template<typename T> void outer(std::ostream &os, const T& t, std::size_t size, 
 template<typename T, std::size_t I0, std::size_t ... I> void outer(std::ostream &os, const T& t, std::size_t size, std::index_sequence<I0, I...>) { os << (I0 == 0 ? '(' : ','); os << std::get<I0>(t); if(I0 == size - 1) os << ')'; outer(os, t, size, std::index_sequence<I...>()); }
 template<typename ... T> std::ostream& operator<<(std::ostream &os, const std::tuple<T...> &t) { outer(os, t, sizeof...(T), std::index_sequence_for<T...>()); }
 
+///////////////////////////////////////////////////////////////////////
+// Graph algorithm
+
+// Strongly connected components by Tarjan
+template<typename Vertex, typename U>
+auto tarjan(const vector<map<T,U>> &g)
+{
+	const auto V = g.size();
+	vector<tuple<bool,Vertex,Vertex>> work(V, make_tuple(false,0,1)); // [1](index) < [2](lowlink) means not yet visited
+	vector<set<Vertex>> scc;
+	Vertex index = 0;
+	stack<Vertex> s;
+	auto visited = [&](Vertex v)->bool { return get<1>(work[v]) >= get<2>(work[v]); };
+	REC(proc, void, (Vertex v)) {
+		work[v] = make_tuple(true, index, index);
+		s.push(v);
+		++index;
+		for(auto out: g[v]) {
+			auto to = out.first;
+			if(!visited(to)) { // not yet visited
+				proc(to);
+				get<2>(work[v]) = min(get<2>(work[v]), get<2>(work[to]));
+			} else if(get<0>(work[to])) { // on stack
+				get<2>(work[v]) = min(get<2>(work[v]), get<1>(work[to]));
+			}
+		}
+		if(get<1>(work[v]) == get<2>(work[v])) {
+			set<Vertex> sc;
+			Vertex w;
+			do {
+				w = s.top(); s.pop();
+				get<0>(work[w]) = false;
+				sc.insert(w);
+			} while(v != w);
+			scc.emplace_back(std::move(sc));
+		}
+	};
+	for(auto v : IR(0,V)) {
+		if(!visited(v)) {
+			proc(v);
+		}
+	}
+	return std::move(scc);
+}
+
 #endif
