@@ -30,11 +30,17 @@ typedef unsigned char UC;
 
 dnl irange<type>(begin, end, div=1)
 // Integer range for range-based for loop
-template<typename T,T D=1>struct irange{struct it{it(T v_):v(v_){}T operator*()const{return v;}it&operator++(){v+=D;return*this;}friend bool operator!=(const it&it1, const it&it2){return it1.v!=it2.v;}private:T v;};it begin()const{return b;}it end()const{return e;}irange(T b_,T e_):b(b_),e(e_){}private:T b,e;};
+template<typename T,T D=1>struct irange{struct it{it(T v_):v(v_){}T operator*()const{return v;}it&operator++(){v+=D;return*this;}friend bool operator!=(const it&it1, const it&it2){return it1.v!=it2.v;}private:T v;};it begin()const{return b;}it end()const{return e;}irange(T b_,T e_):b(b_),e(e_){}irange<T,-D>rev()const{return {e-1,b-1);}private:T b,e;};
 ifelse(cppstd, `c++11', `dnl
 #define IR(b,e) irange<std::common_type<decltype(b),decltype(e)>::type>(b,e)
 ', cppstd, `c++14', `dnl
 #define IR(b,e) irange<std::common_type_t<decltype(b),decltype(e)>>(b,e)
+', `')dnl
+// reverse range
+ifelse(cppstd, `c++11', `dnl
+template<typename T>struct rrange{T&t;rrange(T&t_):t(t_){}auto begin()->decltype(rbegin(t))const{return rbegin(t);}auto end()->decltype(rend(t))const{return rend(t);}};template<typename T>rrange<T>rev(T&t){return {t};}template<typename T,T D>auto rev(const irange<T,D>&t)->decltype(t.rev()){return t.rev();}
+', cppstd, `c++14', `dnl
+template<typename T>struct rrange{T&t;rrange(T&t_):t(t_){}auto begin()const{return rbegin(t);}auto end()const{return rend(t);}};template<typename T>auto rev(T&t){return rrange<T>(t);}template<typename T,T D>auto rev(const irange<T,D>&t){return t.rev();}
 ', `')dnl
 
 dnl make_mvec<type>(init, ext...)
@@ -54,7 +60,7 @@ template<typename T,std::size_t I, typename...U>auto make_mvec_impl(const T&t,co
 ')dnl
 
 #define REC(f, r, a) std::function< r a > f = [&] a -> r
-#define RNG(v) (v).begin(), (v).end()
+#define RNG(v) std::begin(v), std::end(v)
 
 using namespace std;
 
