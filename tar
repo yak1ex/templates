@@ -1,0 +1,61 @@
+#!/bin/sh
+# tar redirector
+# tar extraction blocked in some environment, probably, by VirusBuster, so make fallback to use ptar
+
+echo $* >> /tmp/tar.log
+
+case $1 in
+--*)
+  # long option used
+  ;;
+*[tx]*)
+  # list or extract
+  fallback=1
+  ;;
+esac
+
+if [ x$fallback = x1 ]; then
+  command=$1
+  shift
+  file=$1
+  case $file in
+  *.tar.gz|*.tgz)
+    command=z$command
+    ;;
+  *.tar.bz2|*.tbz)
+    command=j$command
+    ;;
+  *.tar.xz|*.txz)
+    command=J$command
+    ;;
+  esac
+  case $command in
+  *z*)
+    producer='gzip -dc'
+    ;;
+  *j*)
+    producer='bzip2 -dc'
+    ;;
+  *J*)
+    producer='xz -dc'
+    ;;
+  *)
+    producer='cat'
+    ;;
+  esac
+  command=`echo $command | sed -e 's,[zjJ],,g'`
+  shift
+  target=.
+  while [ x"$1" != x ]; do
+    if [ x"$1" = x-C ]; then
+      target=$2
+      shift
+    else
+      opts="$opts '$1'"
+    fi
+    shift
+  done
+  $producer $file | ( cd $target ; /usr/bin/ptar $command - $opts )
+else
+  /usr/bin/tar.exe $*
+fi
