@@ -4,6 +4,17 @@
 
 echo $* >> /tmp/tar.log
 
+if [ /usr/bin/tar -ef /usr/bin/tar.exe ]; then
+  echo 'Seems to that /usr/bin/tar is identical to be /usr/bin/tar.exe, which leads infinite loop.'
+  exit 1
+fi
+
+if [ -x /usr/local/bin/ptar ]; then
+  ptar=/usr/local/bin/ptar
+else
+  ptar=/usr/bin/ptar
+fi
+
 case $1 in
 --*)
   # long option used
@@ -55,7 +66,7 @@ if [ x$fallback = x1 ]; then
     fi
     shift
   done
-  $producer $file | ( cd $target ; /usr/bin/ptar $command - $opts )
+  $producer $file | ( cd $target ; $ptar $command - $opts )
 else
   /usr/bin/tar.exe $*
 fi
