@@ -21,6 +21,7 @@ use JSON;
 use Net::Netrc;
 use Net::GitHub::V3;
 use Term::ANSIColor;
+use File::Basename;
 
 sub slurp
 {
@@ -78,7 +79,7 @@ if($opts{l}) {
 	if($opts{P}) { $spec->{public} = JSON::true }
 	if($opts{D}) { $spec->{description} = $opts{D}; }
 	while(my $filename = shift) {
-		$spec->{files}{$filename}{content} = slurp($filename);
+		$spec->{files}{scalar(fileparse($filename))}{content} = slurp($filename);
 	}
 	print $gist->create($spec)->{id},"\n";
 }
