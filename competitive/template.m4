@@ -30,7 +30,7 @@ typedef unsigned char UC;
 
 dnl irange<type>(begin, end, div=1)
 // Integer range for range-based for loop
-template<typename T,T D=1>struct irange{struct it{it(T v_):v(v_){}T operator*()const{return v;}it&operator++(){v+=D;return*this;}friend bool operator!=(const it&it1, const it&it2){return it1.v!=it2.v;}private:T v;};it begin()const{return b;}it end()const{return e;}irange(T b_,T e_):b(b_),e(e_){}irange<T,-D>rev()const{return {e-1,b-1);}private:T b,e;};
+template<typename T,T D=1>struct irange{struct it{it(T v_):v(v_){}T operator*()const{return v;}it&operator++(){v+=D;return*this;}friend bool operator!=(const it&it1, const it&it2){return it1.v!=it2.v;}private:T v;};it begin()const{return b;}it end()const{return e;}irange(T b_,T e_):b(b_),e(e_){}irange<T,-D>rev()const{return {e-1,b-1};}private:T b,e;};
 ifelse(cppstd, `c++11', `dnl
 #define IR(b,e) irange<std::common_type<decltype(b),decltype(e)>::type>(b,e)
 ', cppstd, `c++14', `dnl
@@ -48,7 +48,7 @@ dnl make_mvec<type>(init, ext...)
 ifelse(cppstd, `c++11', `dnl
 template<typename T,std::size_t I>struct mvec{typedef std::vector<typename mvec<T,I-1>::type> type;};template<typename T>struct mvec<T,0>{typedef std::vector<T> type;};template<typename T,typename U>auto make_mvec(const T&t,const U&u)->std::vector<T>{return std::vector<T>(u,t);}template<typename T,typename U0,typename...U>auto make_mvec(const T&t,const U0&u0,const U&...u)->typename mvec<T,sizeof...(U)>::type{return typename mvec<T,sizeof...(U)>::type(u0,make_mvec<T>(t,u...));}
 ', cppstd, `c++14', `dnl
-template<typename T,typename U>auto make_mvec(const T&t,const U&u)->std::vector<T>{return std::vector<T>(u,t);}template<typename T,typename U0,typename...U>auto make_mvec(const T&t,const U0&u0,const U&...u)->std::vector<decltype(make_mvec<T>(t,u...))>{return std::vector<decltype(make_mvec<T>(t,u...))>(u0,make_mvec<T>(t,u...));}
+template<typename T,typename U>auto make_mvec(const T&t,const U&u){return std::vector<T>(u,t);}template<typename T,typename U0,typename...U>auto make_mvec(const T&t,const U0&u0,const U&...u){return std::vector<decltype(make_mvec<T>(t,u...))>(u0,make_mvec<T>(t,u...));}
 ', `')dnl
 ifelse(`// mvec for tuple style
 ifelse(cppstd, `c++11', `dnl
