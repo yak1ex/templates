@@ -28,9 +28,10 @@ sub slurp
 	my $filename = shift;
 	my $ret;
 	local $/;
-	open my $fh, '<', $filename;
+	open my $fh, '<', $filename or die;
 	$ret = <$fh>;
 	close $fh;
+	return Encode::decode('utf-8', $ret) if -T $filename;
 	return $ret;
 }
 
@@ -71,7 +72,7 @@ if($opts{l}) {
 			$spec->{files}{$old}{filename} = $new;
 		}
 	}
-	while(my ($filename) = shift) {
+	while(my $filename = shift) {
 		$spec->{files}{$filename}{content} = slurp($filename);
 	}
 	$gist->update($opts{u}, $spec);
