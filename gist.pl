@@ -36,6 +36,7 @@ sub slurp
 
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
+$opts{l}=1 if exists $opts{n};
 pod2usage(-verbose => 2) if exists $opts{h};
 # pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 
@@ -120,7 +121,7 @@ Show all gists.
 
 =item C<-n> <num>
 
-Limit <num> entries.
+Limit <num> entries. This implies C<-l>.
 
 =for getopt 'n:'
 
