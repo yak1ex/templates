@@ -37,7 +37,11 @@ sub slurp
 
 my %opts;
 getopts(Getopt::Config::FromPod->string, \%opts);
-$opts{l}=1 if exists $opts{n};
+if(exists $opts{L}) {
+	$opts{F} = $opts{L};
+	$opts{n} = 1;
+}
+$opts{l}=1 if exists $opts{n} || exists $opts{F};
 pod2usage(-verbose => 2) if exists $opts{h};
 # pod2usage(-msg => '', -verbose => 0, -exitval => 1) if ...;
 
@@ -49,13 +53,24 @@ if(exists $ENV{https_proxy}) {
 }
 my $gist = $gh->gist();
 
-# TODO: filter
-
 my $i = 0;
 if($opts{l}) {
 	while(my $_ = $gist->next_gist) {
+		if($opts{F}) {
+			my $match;
+			foreach my $target ($_->{description}, keys(%{$_->{files}})) {
+					if($target =~ /$opts{F}/i) {
+						$match = 1; last;
+					}
+			}
+			next unless $match;
+		}
 		++$i;
-		print Encode::encode('utf-8', sprintf("%s: [%s] %s %s\n%s", $_->{id}, $_->{updated_at}, ($_->{public} ? colored('(public)', 'yellow') : colored('(private)', 'red')), join(',', keys(%{$_->{files}})), $_->{description} =~ s/^/\t/mgr)),"\n";
+		if($opts{L}) {
+			print Encode::encode('utf-8', $_->{id}),"\n";
+		} else {
+			print Encode::encode('utf-8', sprintf("%s: [%s] %s %s\n%s", $_->{id}, $_->{updated_at}, ($_->{public} ? colored('(public)', 'yellow') : colored('(private)', 'red')), join(',', keys(%{$_->{files}})), $_->{description} =~ s/^/\t/mgr)),"\n";
+		}
 		last if(exists $opts{n} && $i > $opts{n});
 	}
 } elsif($opts{u}) {
@@ -96,7 +111,9 @@ gist.pl - Gist CUI helper script
 
 perl gist.pl -h
 
-perl gist.pl -l [-n <num>]
+perl gist.pl -l [-n <num>] [-F <regex>]
+
+perl gist.pl -L <regex>
 
 perl gist.pl -u <id> [-D <desc>] [-d <deleting_files>,...] [-r <rename_specs>] [<files>...]
 
@@ -125,6 +142,16 @@ Show all gists.
 Limit <num> entries. This implies C<-l>.
 
 =for getopt 'n:'
+
+=item C<-F> <regex>
+
+Filter by regex on description and filenames. This implies C<-l>.
+
+=for getopt 'F:'
+
+=item C<-L> <regex>
+
+=for getopt 'L:'
 
 =item C<-u> <id>
 
