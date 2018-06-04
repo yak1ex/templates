@@ -36,10 +36,15 @@ sub slurp
 }
 
 my %opts;
+my $regex_id;
 getopts(Getopt::Config::FromPod->string, \%opts);
 if(exists $opts{L}) {
 	$opts{F} = $opts{L};
 	$opts{n} = 1;
+}
+if(exists $opts{u} && $opts{u} =~ m,^/(.*)/$,) {
+	$opts{F} = $1;
+	$regex_id = 1;
 }
 $opts{l}=1 if exists $opts{n} || exists $opts{F};
 pod2usage(-verbose => 2) if exists $opts{h};
@@ -66,14 +71,19 @@ if($opts{l}) {
 			next unless $match;
 		}
 		++$i;
-		if($opts{L}) {
+		if($regex_id) {
+			$opts{u} = $_->{id};
+		} elsif($opts{L}) {
 			print Encode::encode('utf-8', $_->{id}),"\n";
 		} else {
 			print Encode::encode('utf-8', sprintf("%s: [%s] %s %s\n%s", $_->{id}, $_->{updated_at}, ($_->{public} ? colored('(public)', 'yellow') : colored('(private)', 'red')), join(',', keys(%{$_->{files}})), $_->{description} =~ s/^/\t/mgr)),"\n";
 		}
 		last if(exists $opts{n} && $i > $opts{n});
 	}
-} elsif($opts{u}) {
+	exit unless $regex_id;
+	die "$i mached result(s) found" unless $i == 1;
+}
+if($opts{u}) {
 	my $spec = {};
 	if($opts{D}) { $spec->{description} = $opts{D}; }
 	if($opts{d}) {
@@ -115,7 +125,7 @@ perl gist.pl -l [-n <num>] [-F <regex>]
 
 perl gist.pl -L <regex>
 
-perl gist.pl -u <id> [-D <desc>] [-d <deleting_files>,...] [-r <rename_specs>] [<files>...]
+perl gist.pl -u <id_or_regex> [-D <desc>] [-d <deleting_files>,...] [-r <rename_specs>] [<files>...]
 
 perl gist.pl [-P] [-D <desc>] <files>...
 
@@ -153,9 +163,9 @@ Filter by regex on description and filenames. This implies C<-l>.
 
 =for getopt 'L:'
 
-=item C<-u> <id>
+=item C<-u> <id_or_regex>
 
-Spcify target gist ID.
+Spcify target gist ID. If the beginning and the ending of the argument is '/', that is '/something/', it is treated as regex and use matched ID only if there is the only one matched result.
 
 =for getopt 'u:'
 
