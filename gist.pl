@@ -98,7 +98,7 @@ if($opts{u}) {
 		}
 	}
 	while(my $filename = shift) {
-		$spec->{files}{$filename}{content} = slurp($filename);
+		$spec->{files}{scalar(fileparse($filename))}{content} = slurp($filename);
 	}
 	$gist->update($opts{u}, $spec);
 } else {
