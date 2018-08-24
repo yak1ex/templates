@@ -1,0 +1,30 @@
+#!/bin/sh
+
+function makespec()
+{
+  local i temp list=$1 pred=$2 comb=$3
+  for i in $1; do
+    if [[ -v temp ]]; then
+      temp="${temp} $comb $pred -iname *.$i"
+    else
+      temp="$pred -iname *.$i"
+    fi
+  done
+  echo $temp
+}
+
+exclude_exts='exe bak o'
+executable_exts='bat js pl'
+
+executable_spec=$(makespec "${executable_exts}" '' '-o')
+non_executable_spec=$(makespec "${executable_exts} ${exclude_exts}" '!' '')
+exclude_spec=$(makespec "${exclude_exts}" '!' '')
+
+echo '[non executable]'
+find "$@" -type f ${non_executable_spec}
+echo '[executable]'
+find "$@" -type f \( ${executable_spec} \)
+
+#dryrun=echo
+find "$@" -type f ${non_executable_spec} -print0 | xargs -0 ${dryrun} chmod -x
+find "$@" -type f ${exclude_spec} -print0 | xargs -0 ${dryrun} git add
