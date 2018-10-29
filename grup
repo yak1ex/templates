@@ -1,0 +1,8 @@
+#!/bin/sh
+
+num=`expr $1 : '.\+\([0-9][0-9]\)\.[a-zA-Z0-9]\+$'`
+newnum=`expr $num + 1`
+newnum=`printf %02d $newnum`
+newname=`echo $1 | sed -Ee "s,$num(\\.[a-zA-Z0-9]+)$,$newnum\1,"`
+echo git mv $1 $newname
+git mv $1 $newname
