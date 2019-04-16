@@ -6,6 +6,8 @@
 #include <map>
 #include <cmath>
 #include <vector>
+#include <set>
+#include <map>
 
 ///////////////////////////////////////////////////////////////////////
 // MEMO
@@ -220,6 +222,70 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////
+template<typename T>
+class trie
+{
+	struct node {
+		std::size_t num;
+		std::map<T, node> children;
+	};
+	node root{};
+public:
+	template<typename Iter>
+	bool add(Iter b, Iter e) {
+		node* p = &root;
+		for(Iter it = b; it != e; ++it) {
+			if(!p->children.count(*it)) {
+				p->children.emplace(*it, node{});
+			}
+			p = &p->children[*it];
+			if(std::next(it) == e) ++(p->num);
+		}
+		return p->num != 0;
+	}
+	template<typename Container>
+	bool add(const Container &c) { return add(c.begin(), c.end()); }
+	template<typename Iter>
+	bool has_leaf(Iter b, Iter e) const {
+		const node* p = &root;
+		for(Iter it = b; it != e; ++it) {
+			if(!p->children.count(*it)) {
+				return false;
+			}
+			p = &p->children.at(*it);
+		}
+		return p->num != 0;
+	}
+	template<typename Container>
+	bool has_leaf(const Container &c) { return has_leaf(c.begin(), c.end()); }
+	template<typename Iter>
+	bool has_path(Iter b, Iter e) const {
+		const node* p = &root;
+		for(Iter it = b; it != e; ++it) {
+			if(!p->children.count(*it)) {
+				return false;
+			}
+			p = &p->children.at(*it);
+		}
+		return true;
+	}
+	template<typename Container>
+	bool has_path(const Container &c) { return has_path(c.begin(), c.end()); }
+	template<typename F>
+	static void dfs_(F f, std::size_t depth, const node& n)
+	{
+		for(const auto& v: n.children) {
+			if(f(depth, v.first, v.second.num))
+				dfs_(f, depth + 1, v.second);
+		}
+	}
+	template<typename F>
+	void dfs(F f) const {
+		dfs_(f, 0, root);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////
 
 // Naive permutation
 inline long long perm(long long n, long long r)
@@ -376,7 +442,7 @@ public:
 	rf& operator+=(rf v) { value+=v.get(); fixup(); return *this; }
 	rf& operator-=(rf v) { value-=v.get(); fixup(); return *this; }
 	rf& operator*=(rf v) { ULL temp = value; temp*=v.get(); set(temp); return *this; }
-	rf& operator/=(rf v) { ULL temp = value; temp*=v.inv.get(); set(temp); return *this; }
+	rf& operator/=(rf v) { ULL temp = value; temp*=v.inv().get(); set(temp); return *this; }
 };
 template<typename T, T modulo>
 rf<T,modulo> operator+(rf<T,modulo> v1, rf<T,modulo> v2)
@@ -541,13 +607,14 @@ template<typename ... T> std::ostream& operator<<(std::ostream &os, const std::t
 
 // Strongly connected components by Tarjan
 template<typename Vertex, typename U>
-auto tarjan(const vector<map<T,U>> &g)
+auto tarjan(const std::vector<std::map<Vertex,U>> &g)
 {
+	using std::get;
 	const auto V = g.size();
-	vector<tuple<bool,Vertex,Vertex>> work(V, make_tuple(false,0,1)); // [1](index) < [2](lowlink) means not yet visited
-	vector<set<Vertex>> scc;
+	std::vector<std::tuple<bool,Vertex,Vertex>> work(V, std::make_tuple(false,0,1)); // [1](index) < [2](lowlink) means not yet visited
+	std::vector<std::set<Vertex>> scc;
 	Vertex index = 0;
-	stack<Vertex> s;
+	std::stack<Vertex> s;
 	auto visited = [&](Vertex v)->bool { return get<1>(work[v]) >= get<2>(work[v]); };
 	REC(proc, void, (Vertex v)) {
 		work[v] = make_tuple(true, index, index);
@@ -578,7 +645,7 @@ auto tarjan(const vector<map<T,U>> &g)
 			proc(v);
 		}
 	}
-	return std::move(scc);
+	return scc; // NRVO
 }
 
 #endif

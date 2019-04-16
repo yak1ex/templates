@@ -7,7 +7,7 @@ distclean:
 	-rm -f *.exe *.BAK *.bak [a-d].{txt,cpp}
 
 CXX=g++
-CXXFLAGS=-O2 -W -Wall -Wconversion -Wshadow -Wno-unused-local-typedefs -std=c++11 -I/usr/local/include
+CXXFLAGS=-O3 -W -Wall -Wconversion -Wshadow -Wno-unused-local-typedefs -std=c++14 -I/usr/local/include
 
 define TMPL1
 $(1).exe: $(1).cpp

@@ -4,11 +4,12 @@
 #include <queue>
 #include <functional>
 #include <set>
+#include <random>
+#include <vector>
 
 typedef unsigned int UI;
 typedef unsigned long long ULL;
 
-#include "lib.hpp"
 
 using namespace std;
 
@@ -22,26 +23,36 @@ template<typename T,T D=1>struct irange{struct it{it(T v_):v(v_){}T operator*()c
 // mvec for flat style
 template<typename T,typename U>auto make_mvec(const T&t,const U&u){return std::vector<T>(u,t);}template<typename T,typename U0,typename...U>auto make_mvec(const T&t,const U0&u0,const U&...u){return std::vector<decltype(make_mvec<T>(t,u...))>(u0,make_mvec<T>(t,u...));}
 
+#define REC(f, r, a) std::function< r a > f = [&] a -> r
+#define RNG(v) std::begin(v), std::end(v)
+
+#include "lib.hpp"
+
 
 ///////////////////////////////////////////////////////////////////////
 // regex example
 
-void regex()
+void regex_sample()
 {
 	std::smatch sm;
 	std::string target("This is a test sentence");
+	// 0: This is a test sentence
 	if(std::regex_match(target, sm, std::regex(".*"))) {
 		for(auto subm : sm) {
 			std::cout << std::string(subm.first, subm.second) << std::endl;
 		}
 	}
+	// 0: " i"
+	// 1: "i"
 	if(std::regex_search(target, sm, std::regex(" ([a-z])"))) {
 		for(auto subm : sm) {
 			std::cout << (subm.matched ? std::string(subm.first, subm.second) : std::string("NOT MATCHED")) << std::endl;
 		}
 	}
+	// This| i|s| a|| t|est| s|entence
 	auto result = std::regex_replace(target, std::regex(" [a-z]"), "|$&|");
 	std::cout << result << std::endl;
+	// This| i|s a test sentence
 	auto result2 = std::regex_replace(target, std::regex(" [a-z]"), "|$&|", std::regex_constants::format_first_only);
 	std::cout << result2 << std::endl;
 }
@@ -262,5 +273,42 @@ auto prim(multimap<UI, pair<UI,UI>> m)
 
 int main(void)
 {
+///////////////////////////////////////////////////////////////////////
+// some <random> sample
+	mt19937 gen;
+	std::uniform_int_distribution<> dis(0, 10); // inclusive
+	dis(gen);
+
+	vector<int> v(5);
+	iota(RNG(v), 0);
+	shuffle(RNG(v), gen);
+
+///////////////////////////////////////////////////////////////////////
+// trie
+	trie<char> t;
+	t.add(std::string("ABCDE"));
+	t.add(std::string("ABCE"));
+	t.add(std::string("ABC"));
+	t.add(std::string("ABC"));
+	cout << t.has_leaf(std::string("ABC")) << endl;  // true
+	cout << t.has_leaf(std::string("ABCD")) << endl; // false
+	cout << t.has_path(std::string("AB")) << endl;   // true
+	cout << t.has_path(std::string("AC")) << endl;   // false
+	// dump tree
+	t.dfs([](std::size_t depth, char c, std::size_t num) {
+		cout << depth << ',' << c << ',' << num << endl;
+		return true;
+	});
+	// recover strings
+	std::string s;
+	t.dfs([&](std::size_t depth, char c, std::size_t num) {
+		if(s.size() < depth + 1) s.resize(depth + 1);
+		s[depth] = c;
+		if(num) { cout << s.substr(0, depth + 1) << ':' << num << endl; }
+		return true;
+	});
+
+	regex_sample();
+
 	return 0;
 }

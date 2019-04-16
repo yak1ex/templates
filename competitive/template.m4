@@ -3,6 +3,7 @@ dnl dependency tracking referring g++ 6.4.0
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <functional>
 #include <numeric>
 #include <limits>
 #include <bitset>
@@ -36,7 +37,7 @@ ifelse(cppstd, `c++11', `dnl
 ', cppstd, `c++14', `dnl
 #define IR(b,e) irange<std::common_type_t<decltype(b),decltype(e)>>(b,e)
 ', `')dnl
-// reverse range
+// reverse range: rev(range)
 ifelse(cppstd, `c++11', `dnl
 template<typename T>struct rrange{T&t;rrange(T&t_):t(t_){}auto begin()->decltype(rbegin(t))const{return rbegin(t);}auto end()->decltype(rend(t))const{return rend(t);}};template<typename T>rrange<T>rev(T&t){return {t};}template<typename T,T D>auto rev(const irange<T,D>&t)->decltype(t.rev()){return t.rev();}
 ', cppstd, `c++14', `dnl
@@ -44,7 +45,7 @@ template<typename T>struct rrange{T&t;rrange(T&t_):t(t_){}auto begin()const{retu
 ', `')dnl
 
 dnl make_mvec<type>(init, ext...)
-// mvec for flat style
+// mvec for flat style: make_mvec<type>(init, extents...)
 ifelse(cppstd, `c++11', `dnl
 template<typename T,std::size_t I>struct mvec{typedef std::vector<typename mvec<T,I-1>::type> type;};template<typename T>struct mvec<T,0>{typedef std::vector<T> type;};template<typename T,typename U>auto make_mvec(const T&t,const U&u)->std::vector<T>{return std::vector<T>(u,t);}template<typename T,typename U0,typename...U>auto make_mvec(const T&t,const U0&u0,const U&...u)->typename mvec<T,sizeof...(U)>::type{return typename mvec<T,sizeof...(U)>::type(u0,make_mvec<T>(t,u...));}
 ', cppstd, `c++14', `dnl
