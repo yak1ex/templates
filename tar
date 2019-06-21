@@ -66,6 +66,9 @@ if [ x$fallback = x1 ]; then
     fi
     shift
   done
+  if [ ! -x $target ]; then
+    mkdir $target
+  fi
   $producer $file | ( cd $target ; $ptar $command - $opts )
 else
   /usr/bin/tar.exe $*
