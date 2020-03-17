@@ -15,7 +15,7 @@ function makespec()
 }
 
 exclude_exts='exe bak o'
-executable_exts='bat js pl sh ps1'
+executable_exts='bat js pl sh ps1 py'
 
 executable_spec=$(makespec "${executable_exts}" '' '-o')
 non_executable_spec=$(makespec "${executable_exts} ${exclude_exts}" '!' '')
