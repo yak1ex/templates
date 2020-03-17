@@ -1,13 +1,14 @@
 #!/bin/sh
+set -f
 
 function makespec()
 {
   local i temp list=$1 pred=$2 comb=$3
-  for i in $1; do
+  for i in $list; do
     if [[ -v temp ]]; then
-      temp="${temp} $comb $pred -iname '*.$i'"
+      temp="${temp} $comb $pred -iname *.$i"
     else
-      temp="$pred -iname '*.$i'"
+      temp="$pred -iname *.$i"
     fi
   done
   echo $temp
