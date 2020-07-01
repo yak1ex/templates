@@ -40,7 +40,7 @@
 	rr = rebase origin/master
 	s = status
 	ss = status -s
-	st = status
+	st = status -s -uno -b
 	sc = svn clone --no-minimize-url --prefix svn/ -s
 	ta = tag -l
 [http]
