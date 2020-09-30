@@ -27,5 +27,5 @@ echo '[executable]'
 find "$@" -type f \( ${executable_spec} \)
 
 #dryrun=echo
-find "$@" -type f ${non_executable_spec} -print0 | xargs -0 ${dryrun} chmod -x
-find "$@" -type f ${exclude_spec} -print0 | xargs -0 ${dryrun} git add
+find "$@" -type f ${non_executable_spec} -print0 | xargs -r -0 ${dryrun} chmod -x
+find "$@" -type f ${exclude_spec} -print0 | xargs -r -0 ${dryrun} git add
