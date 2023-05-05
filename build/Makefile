@@ -18,4 +18,4 @@ install: all
 	install -p -s editor.exe $(INSTALLDIR_GLOBAL)
 
 editor.exe: editor.c
-	$(MCC) -mwindows -o editor editor.c
+	$(MCC) -mwindows -o editor editor.c -lshlwapi

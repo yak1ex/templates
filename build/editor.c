@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <shlwapi.h>
 #include <strsafe.h>
 
 #define NUM_APP 2
@@ -21,107 +22,53 @@ LPWSTR lpszAppSpec[][NUM_APP] = {
 
 #define BUFSIZE 2048
 
-/* based on https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output */
 BOOL GetScoopInstalledPathW(LPWSTR lpw, DWORD dwLen, LPWSTR lpwExe)
 {
-    HANDLE hReader, hWriter;
-    {
-        /* Set the bInheritHandle flag so pipe handles are inherited. */
-        SECURITY_ATTRIBUTES saAttr = {
-            sizeof(SECURITY_ATTRIBUTES), /* nLength */
-            NULL, /* lpSecurityDescriptor */
-            TRUE /* bInheritHandle */
-        };
-        /* Create a pipe for the child process's STDOUT. */
-        if ( ! CreatePipe( &hReader, &hWriter, &saAttr, 0) ) {
-            return FALSE;
-        }
+    WCHAR wszBuf[BUFSIZE];
+    LPWSTR const lpwExeExt = L".exe";
+
+    HRESULT hr = StringCbCopyW( wszBuf, sizeof(wszBuf), lpwExe );
+    if ( FAILED( hr ) ) return FALSE;
+
+    BOOL b = PathFindOnPathW( wszBuf, 0 );
+    if ( ! b ) return FALSE;
+
+    LPWSTR lpw1 = wszBuf, lpw2 = lpwExeExt, lpwPos = wszBuf;
+    while ( *lpw1 && *lpw2 ) {
+        if ( *lpw1 == *lpw2 ) { ++lpw1; ++lpw2; }
+        else { ++lpw1; lpw2 = lpwExeExt; lpwPos = lpw1; }
     }
-    /* Ensure the read handle to the pipe for STDOUT is not inherited. */
-    if ( ! SetHandleInformation(hReader, HANDLE_FLAG_INHERIT, 0) ) {
-        CloseHandle( hWriter );
-        CloseHandle( hReader );
-        return FALSE;
-    }
+    if ( *lpw1 || *lpw2 ) return FALSE;
 
-    /* Create the child process. */
-    {
+    StringCbCopyW( lpwPos, sizeof(wszBuf) - (lpwPos - wszBuf) * sizeof(wszBuf[0]), L".shim" );
 
-        /* Set up members of the STARTUPINFO structure.
-           This structure specifies the STDIN and STDOUT handles for redirection. */
-        PROCESS_INFORMATION piProcInfo;
-        STARTUPINFOW siStartInfo;
+    HANDLE hFile;
+    hFile = CreateFileW( wszBuf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL , 0 );
+    if ( hFile == INVALID_HANDLE_VALUE ) return FALSE;
 
-        /* Set up members of the PROCESS_INFORMATION structure. */
-        ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
-        ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
-        siStartInfo.cb = sizeof(STARTUPINFO);
-        siStartInfo.hStdOutput = hWriter;
-        siStartInfo.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    CHAR szBuf[BUFSIZE];
+    DWORD dwRead;
+    LPSTR lpStart = 0, lpWork;
+    BOOL fRead = ReadFile( hFile, szBuf, sizeof(szBuf) - 1, &dwRead, 0 );
+    CloseHandle( hFile );
+    if ( !fRead ) return FALSE;
 
-        /* Create the child process.  */
-        {
-            WCHAR buf[2048];
-            StringCbPrintfW( buf, sizeof(buf),  L"cmd.exe /c scoop which %s", lpwExe );
-
-            if ( ! CreateProcessW(NULL,
-                                  buf,             /* command line */
-                                  NULL,            /* process security attributes */
-                                  NULL,            /* primary thread security attributes */
-                                  TRUE,            /* handles are inherited */
-                                  0,               /* creation flags */
-                                  NULL,            /* use parent's environment */
-                                  NULL,            /* use parent's current directory */
-                                  &siStartInfo,    /* STARTUPINFO pointer */
-                                  &piProcInfo) ) { /* receives PROCESS_INFORMATION */
-                /* If an error occurs, exit the application.  */
-                CloseHandle( hWriter );
-                CloseHandle( hReader );
-                return FALSE;
+    szBuf[dwRead] = 0;
+    lpWork = szBuf;
+    while ( *lpWork ) {
+        if ( *lpWork == '"' ) {
+            if ( lpStart ) {
+                *lpWork = 0;
+                break;
+            } else {
+                lpStart = lpWork + 1;
             }
         }
-
-        /* Close handles to the child primary thread. */
-        CloseHandle( piProcInfo.hThread );
-        /* Close handles to the stdout pipes no longer needed by the child process.
-           If they are not explicitly closed, there is no way to recognize that the child process has ended. */
-        CloseHandle( hWriter );
-
-        /* Wait the child process. */
-        WaitForSingleObject( piProcInfo.hProcess, INFINITE );
-        CloseHandle( piProcInfo.hProcess );
+        ++lpWork;
     }
+    if ( ! lpStart ) return FALSE;
 
-    {
-        CHAR chBuf[BUFSIZE];
-        DWORD dwRead;
-        if ( ! ReadFile( hReader, chBuf, BUFSIZE, &dwRead, NULL) ) {
-            CloseHandle( hReader );
-            return FALSE;
-        }
-        CloseHandle( hReader );
-        if ( dwRead && chBuf[dwRead - 1] == '\n' ) --dwRead;
-        if ( dwRead && chBuf[dwRead - 1] == '\r' ) --dwRead;
-        chBuf[dwRead] = 0;
-        if ( chBuf[0] == '~' ) {
-            DWORD dwLenHome = GetEnvironmentVariableW( L"USERPROFILE", lpw, dwLen );
-            if ( ! dwLenHome ) {
-                CloseHandle( hReader );
-                return FALSE;
-            }
-            if ( ! MultiByteToWideChar( CP_ACP, 0, chBuf + 1, -1, lpw + dwLenHome, dwLen - dwLenHome ) ) {
-                CloseHandle( hReader );
-                return FALSE;
-            }
-        } else {
-            if ( ! MultiByteToWideChar( CP_ACP, 0, chBuf, -1, lpw, dwLen ) ) {
-                CloseHandle( hReader );
-                return FALSE;
-            }
-        }
-    }
-
-    return TRUE;
+    return MultiByteToWideChar( CP_UTF8, 0, lpStart, -1, lpw, dwLen ) != 0;
 }
 
 /* https://msdn.microsoft.com/en-us/library/windows/desktop/aa376389(v=vs.85).aspx */
