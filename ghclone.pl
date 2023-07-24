@@ -16,8 +16,7 @@ use warnings;
 use Getopt::Std;
 use Pod::Usage;
 
-use Config::INI::Reader;
-use Config::INI::Writer;
+use Config::Tiny;
 use YAML::Any;
 use IO::Prompt;
 
@@ -35,7 +34,7 @@ my $CONF = $ENV{HOME}.'/.template.yaml';
 my $conf = -r $CONF ? YAML::Any::LoadFile($CONF) : {};
 my $authors = [map { $_->{name}.' <'.$_->{email}.'>' } @{$conf->{author}}];
 my ($gitname) = map { s/\@users.noreply.github.com//; $_ } grep { /\@users.noreply.github.com/ } map { $_->{email} } @{$conf->{author}};
-my $conf_user = Config::INI::Reader->read_file("$ENV{HOME}/.gitconfig");
+my $conf_user = Config::Tiny->read("$ENV{HOME}/.gitconfig");
 my $def_user  = $conf_user->{user}{name};
 my $def_email = $conf_user->{user}{email};
 
@@ -52,20 +51,17 @@ while(my $line = shift) {
 		}
 	}
 	warn "$repo already exists" and next if -e $repo;
-	system "git clone $url $repo";
-	my $conf_repo = Config::INI::Reader->read_file("${repo}/.git/config");
 	my $default = to_str($conf->{author}[0]);
 	if(-f "${repo}/dist.ini" || -f "${repo}/Makefile.PL" || -f "${repo}/Build.PL") { # Perl module
 		$default = to_str((grep { $_->{email} =~ /\@cpan\.org$/ } @{$conf->{author}})[0]);
 	}
 	my $result = prompt('Author: ', -menu => $authors, -default => $default, '-tty');
 	$result =~ /^(.*\S)\s*<([^>]*)>$/;
-	$conf_repo->{user}{name}  = $1;
-	$conf_repo->{user}{email} = $2;
-	if($conf_repo->{user}{name} ne $def_user ||
-	   $conf_repo->{user}{email} ne $def_email) {
-		Config::INI::Writer->write_file($conf_repo, "${repo}/.git/config");
-	}
+	my ($name, $email) = ($1, $2);
+	my ($conf_arg);
+	$conf_arg .= "-c \"user.name=$name\" " if $name ne $def_user;
+	$conf_arg .= "-c \"user.email=$email\" " if $email ne $def_email;
+	system "git clone $conf_arg $url $repo";
 }
 
 __END__
