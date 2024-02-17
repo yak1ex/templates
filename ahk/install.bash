@@ -3,16 +3,20 @@
 target_dir=/cygdrive/c/usr/local/bin
 
 function install_imev2() {
-  target=${target_dir}/IMEv2.ahk
+  name=IMEv2.ahk
+  target=${target_dir}/${name}
+  account=k-ayaki
+  repo=IMEv2.ahk
 
-  date_remote=$(wget -qO- 'https://api.github.com/repos/k-ayaki/IMEv2.ahk/commits?path=IMEv2%2eahk&page=1&per_page=1' | jq '.[0].commit.committer.date' | sed -e 's/"//g' | tr -d \\r)
+  date_remote=$(wget -qO- "https://api.github.com/repos/${account}/${repo}/commits?path=${name}&page=1&per_page=1" | jq '.[0].commit.committer.date' | sed -e 's/"//g' | tr -d \\r)
   tmpfile=$(mktemp)
   touch --date=${date_remote} $tmpfile
   if [[ ! -e $target || $tmpfile -nt $target ]]; then
-    wget -O $target https://raw.githubusercontent.com/k-ayaki/IMEv2.ahk/master/IMEv2.ahk
+    wget -O $target https://raw.githubusercontent.com/${account}/${repo}/master/${name}
     touch --date=${date_remote} $target
+    echo Update ${name}
   else
-    echo Skip IMEv2.ahk
+    echo Skip ${name}
   fi
   rm $tmpfile
 }
