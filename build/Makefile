@@ -14,8 +14,12 @@ all: editor.exe
 clean:
 	-rm -rf *.o *.exe
 
-install: all
+install: $(INSTALLDIR_GLOBAL)/editor.exe
+
+$(INSTALLDIR_GLOBAL)/editor.exe: editor.exe
 	install -p -s editor.exe $(INSTALLDIR_GLOBAL)
 
 editor.exe: editor.c
 	$(MCC) -mwindows -o editor editor.c -lshlwapi
+
+.PHONY: all clean install
