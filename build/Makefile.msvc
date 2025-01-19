@@ -1,0 +1,5 @@
+editor.exe: editor.c
+    $(CC) $(CFLAGS) editor.c Advapi32.lib Shell32.lib Shlwapi.lib
+
+clean:
+	-del /f *.obj *.exe
