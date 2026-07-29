@@ -17,6 +17,7 @@ clean:
 install: $(INSTALLDIR_GLOBAL)/editor.exe
 
 $(INSTALLDIR_GLOBAL)/editor.exe: editor.exe
+	-mkdir -p $(INSTALLDIR_GLOBAL)
 	install -p -s editor.exe $(INSTALLDIR_GLOBAL)
 
 editor.exe: editor.c
