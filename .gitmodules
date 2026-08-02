@@ -1,0 +1,6 @@
+[submodule "agentic-coding"]
+	path = agentic-coding
+	url = https://github.com/yak1ex/agentic-coding-templates
+[submodule "build/browrdr"]
+	path = build/browrdr
+	url = https://github.com/yak1ex/browrdr
